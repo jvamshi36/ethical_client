@@ -1,0 +1,186 @@
+/* Dashboard component styles */
+
+.dashboard-container {
+    margin-bottom: 24px;
+  }
+  
+  .welcome-section {
+    margin-bottom: 32px;
+  }
+  
+  .summary-card {
+    height: 100%;
+    background: linear-gradient(145deg, rgba(13, 34, 57, 0.7) 0%, rgba(15, 42, 69, 0.7) 100%);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 188, 212, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+    padding: 16px;
+  }
+  
+  .summary-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 24px rgba(0, 188, 212, 0.3);
+  }
+  
+  .card-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .card-icon {
+    margin-right: 12px;
+    background: linear-gradient(45deg, rgba(0, 188, 212, 0.8), rgba(0, 212, 230, 0.8));
+    box-shadow: 0 4px 10px rgba(0, 188, 212, 0.3);
+    transition: transform 0.2s;
+  }
+  
+  .card-icon:hover {
+    transform: rotate(15deg);
+  }
+  
+  .card-title {
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 500;
+  }
+  
+  .card-value {
+    font-size: 2rem;
+    font-weight: 600;
+    margin: 8px 0;
+    background: linear-gradient(45deg, #00bcd4, #00e5ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  
+  .card-subvalue {
+    display: block;
+    margin-top: 4px;
+  }
+  
+  .chart-container {
+    padding: 20px;
+    margin-bottom: 24px;
+    background: linear-gradient(145deg, rgba(13, 34, 57, 0.7) 0%, rgba(15, 42, 69, 0.7) 100%);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 188, 212, 0.1);
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .chart-container:hover {
+    box-shadow: 0 8px 24px rgba(0, 188, 212, 0.2);
+  }
+  
+  .chart-title {
+    margin-bottom: 16px;
+    color: rgba(255, 255, 255, 0.9);
+    font-weight: 500;
+  }
+  
+  .chart-axis {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  
+  .chart-grid {
+    stroke: rgba(255, 255, 255, 0.1);
+  }
+  
+  .chart-line {
+    stroke-width: 2;
+  }
+  
+  .chart-tooltip {
+    background-color: rgba(13, 34, 57, 0.9);
+    border: 1px solid rgba(0, 188, 212, 0.3);
+    border-radius: 8px;
+    padding: 8px;
+    color: white;
+  }
+  
+  .chart-legend {
+    margin-top: 16px;
+  }
+  
+  .activity-list {
+    max-height: 400px;
+    overflow-y: auto;
+  }
+  
+  .activity-item {
+    padding: 12px;
+    transition: background-color 0.2s;
+    border-radius: 8px;
+  }
+  
+  .activity-item:hover {
+    background-color: rgba(0, 188, 212, 0.05);
+  }
+  
+  .activity-avatar {
+    background: linear-gradient(45deg, rgba(0, 188, 212, 0.8), rgba(124, 77, 255, 0.8));
+  }
+  
+  .activity-title {
+    font-weight: 500;
+  }
+  
+  .activity-description {
+    display: block;
+    margin-bottom: 4px;
+  }
+  
+  .activity-date {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .activity-status {
+    margin-left: 8px;
+  }
+  
+  .avatar-DA {
+    background: linear-gradient(45deg, #4caf50, #81c784);
+  }
+  
+  .avatar-TA {
+    background: linear-gradient(45deg, #2196f3, #64b5f6);
+  }
+  
+  .avatar-USER {
+    background: linear-gradient(45deg, #9c27b0, #ba68c8);
+  }
+  
+  .analytics-panel {
+    padding: 24px;
+    margin-bottom: 24px;
+    background: linear-gradient(145deg, rgba(13, 34, 57, 0.7) 0%, rgba(15, 42, 69, 0.7) 100%);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(0, 188, 212, 0.1);
+  }
+  
+  .panel-title {
+    margin-bottom: 16px;
+    font-weight: 500;
+  }
+  
+  .filters-panel {
+    background: linear-gradient(145deg, rgba(13, 34, 57, 0.8) 0%, rgba(15, 42, 69, 0.8) 100%);
+    border: 1px solid rgba(0, 188, 212, 0.2);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-radius: 12px;
+    backdrop-filter: blur(10px);
+  }
+  
+  .summary-value {
+    font-size: 1.75rem;
+    font-weight: 600;
+    background: linear-gradient(45deg, #00bcd4, #00e5ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin: 8px 0;
+  }
