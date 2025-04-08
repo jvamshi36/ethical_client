@@ -51,11 +51,16 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
         api.get('/reference/headquarters')
       ]);
       
-      setDepartments(deptResponse.data || []);
-      setHeadquarters(hqResponse.data || []);
+      // Ensure departments is an array
+      setDepartments(Array.isArray(deptResponse.data) ? deptResponse.data : []);
+      // Ensure headquarters is an array
+      setHeadquarters(Array.isArray(hqResponse.data) ? hqResponse.data : []);
     } catch (error) {
       console.error('Error fetching reference data:', error);
       setApiError('Failed to fetch reference data. Please try again later.');
+      // Initialize with empty arrays to prevent mapping errors
+      setDepartments([]);
+      setHeadquarters([]);
     } finally {
       setLoading(false);
     }
@@ -74,13 +79,16 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
       
       if (managerRoles) {
         const response = await api.get(`/users?roles=${managerRoles}`);
-        setManagers(response.data || []);
+        // Ensure managers is an array
+        setManagers(Array.isArray(response.data) ? response.data : []);
       } else {
         setManagers([]);
       }
     } catch (error) {
       console.error('Error fetching managers:', error);
       setApiError('Failed to fetch managers. Please try again later.');
+      // Initialize with empty array to prevent mapping errors
+      setManagers([]);
     }
   };
   
@@ -257,7 +265,7 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               label="Department"
             >
               <MenuItem value="">Select Department</MenuItem>
-              {departments.map(dept => (
+              {Array.isArray(departments) && departments.map(dept => (
                 <MenuItem key={dept.id} value={dept.name}>
                   {dept.name}
                 </MenuItem>
@@ -277,7 +285,7 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               label="Headquarters"
             >
               <MenuItem value="">Select Headquarters</MenuItem>
-              {headquarters.map(hq => (
+              {Array.isArray(headquarters) && headquarters.map(hq => (
                 <MenuItem key={hq.id} value={hq.name}>
                   {hq.name}
                 </MenuItem>
@@ -298,7 +306,7 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
                 label="Reporting Manager"
               >
                 <MenuItem value="">Select Manager</MenuItem>
-                {managers.map(manager => (
+                {Array.isArray(managers) && managers.map(manager => (
                   <MenuItem key={manager.id} value={manager.id}>
                     {manager.full_name} ({manager.role})
                   </MenuItem>

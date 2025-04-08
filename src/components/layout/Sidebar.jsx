@@ -113,8 +113,7 @@ const Sidebar = ({ open }) => {
               component={NavLink}
               to={item.path}
               key={item.text}
-              className="menu-item"
-              activeClassName="active"
+              className={({ isActive }) => `menu-item${isActive ? ' active' : ''}`}
             >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
@@ -140,8 +139,7 @@ const Sidebar = ({ open }) => {
                       component={NavLink}
                       to={item.path}
                       key={item.text}
-                      className="submenu-item"
-                      activeClassName="active"
+                      className={({ isActive }) => `submenu-item${isActive ? ' active' : ''}`}
                     >
                       <ListItemIcon>{item.icon}</ListItemIcon>
                       <ListItemText primary={item.text} />

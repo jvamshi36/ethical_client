@@ -71,13 +71,24 @@ const Dashboard = () => {
     );
   }
   
-  const { summary, charts } = dashboardData;
+  // Extract data with fallbacks for safe rendering
+  const summary = dashboardData.summary || {};
+  const totalDA = summary.totalDA || 0;
+  const totalTA = summary.totalTA || 0;
+  const totalAmount = summary.totalAmount || 0;
+  const pendingApprovals = summary.pendingApprovals || 0;
+  const recentActivity = summary.recentActivity || [];
+  
+  const charts = dashboardData.charts || {};
+  const monthlyExpenses = charts.monthlyExpenses || [];
+  const categoryDistribution = charts.categoryDistribution || [];
+  const statusDistribution = charts.statusDistribution || [];
   
   return (
     <PageContainer title="Dashboard">
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom>
-          Welcome, {currentUser.fullName}!
+          Welcome, {currentUser?.fullName || "User"}!
         </Typography>
         <Typography variant="body1" color="textSecondary">
           Here's an overview of your expenses and activities
@@ -89,7 +100,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Daily Allowance"
-            mainValue={`$${summary.totalDA.toFixed(2)}`}
+            mainValue={`$${totalDA.toFixed(2)}`}
             secondaryValue="Total approved"
             icon={<AttachMoney />}
             color="#4caf50"
@@ -99,7 +110,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Travel Allowance"
-            mainValue={`$${summary.totalTA.toFixed(2)}`}
+            mainValue={`$${totalTA.toFixed(2)}`}
             secondaryValue="Total approved"
             icon={<CardTravel />}
             color="#2196f3"
@@ -109,7 +120,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Total Expenses"
-            mainValue={`$${summary.totalAmount.toFixed(2)}`}
+            mainValue={`$${totalAmount.toFixed(2)}`}
             secondaryValue="All categories"
             icon={<TrendingUp />}
             color="#ff9800"
@@ -119,7 +130,7 @@ const Dashboard = () => {
         <Grid item xs={12} sm={6} md={3}>
           <SummaryCard
             title="Pending Approvals"
-            mainValue={isManager() ? summary.pendingApprovals.toString() : "0"}
+            mainValue={isManager() ? (pendingApprovals || "0") : "0"}
             secondaryValue="Awaiting review"
             icon={<Notifications />}
             color="#9c27b0"
@@ -132,7 +143,7 @@ const Dashboard = () => {
         <Grid item xs={12} md={8}>
           <ExpenseChart
             type="line"
-            data={charts.monthlyExpenses}
+            data={monthlyExpenses}
             title="Monthly Expenses"
             height={320}
           />
@@ -143,14 +154,14 @@ const Dashboard = () => {
             <Typography variant="h6" gutterBottom>
               Recent Activity
             </Typography>
-            <ActivityList activities={summary.recentActivity} />
+            <ActivityList activities={recentActivity} />
           </Paper>
         </Grid>
         
         <Grid item xs={12} md={6}>
           <ExpenseChart
             type="bar"
-            data={charts.categoryDistribution}
+            data={categoryDistribution}
             title="Expense Categories"
             height={300}
           />
@@ -159,7 +170,7 @@ const Dashboard = () => {
         <Grid item xs={12} md={6}>
           <ExpenseChart
             type="pie"
-            data={charts.statusDistribution}
+            data={statusDistribution}
             title="Approval Status"
             height={300}
           />

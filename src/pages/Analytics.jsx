@@ -19,7 +19,12 @@ const Analytics = () => {
   const { currentUser, isManager, isAdmin } = useAuth();
   
   const [analyticsData, setAnalyticsData] = useState({
-    summary: {},
+    summary: {
+      totalDA: 0,
+      totalTA: 0,
+      totalAmount: 0,
+      approvalRate: 0
+    },
     charts: {
       monthlyExpenses: [],
       expenseCategories: [],
@@ -96,13 +101,53 @@ const Analytics = () => {
       if (filters.userId && filters.userId !== 'current') params.userId = filters.userId;
       
       // Call appropriate analytics endpoint based on user role
-      let response;
-      if (isAdmin()) {
-        response = await AnalyticsService.getAdminAnalytics(params);
-      } else if (isManager()) {
-        response = await AnalyticsService.getTeamAnalytics(params);
-      } else {
-        response = await AnalyticsService.getUserAnalytics(params);
+      let response = {
+        summary: {
+          totalDA: 0,
+          totalTA: 0,
+          totalAmount: 0,
+          approvalRate: 0
+        },
+        charts: {
+          monthlyExpenses: [],
+          expenseCategories: [],
+          statusDistribution: [],
+          departmentComparison: [],
+          userRankings: []
+        }
+      };
+      
+      try {
+        if (isAdmin()) {
+          response = await AnalyticsService.getAdminAnalytics(params);
+        } else if (isManager()) {
+          response = await AnalyticsService.getTeamAnalytics(params);
+        } else {
+          response = await AnalyticsService.getUserAnalytics(params);
+        }
+      } catch (err) {
+        console.error('Error fetching analytics from service:', err);
+        // Keep the default response structure
+      }
+      
+      // Ensure we have valid data
+      if (!response.summary) {
+        response.summary = {
+          totalDA: 0,
+          totalTA: 0,
+          totalAmount: 0,
+          approvalRate: 0
+        };
+      }
+      
+      if (!response.charts) {
+        response.charts = {
+          monthlyExpenses: [],
+          expenseCategories: [],
+          statusDistribution: [],
+          departmentComparison: [],
+          userRankings: []
+        };
       }
       
       setAnalyticsData(response);
@@ -175,7 +220,7 @@ const Analytics = () => {
   };
   
   const renderContent = () => {
-    if (loading && !analyticsData.charts.monthlyExpenses.length) {
+    if (loading) {
       return (
         <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
           <CircularProgress />
@@ -191,7 +236,13 @@ const Analytics = () => {
       );
     }
     
-    const { charts } = analyticsData;
+    // Ensure charts exist with defaults
+    const charts = analyticsData.charts || {};
+    const monthlyExpenses = charts.monthlyExpenses || [];
+    const expenseCategories = charts.expenseCategories || [];
+    const statusDistribution = charts.statusDistribution || [];
+    const departmentComparison = charts.departmentComparison || [];
+    const userRankings = charts.userRankings || [];
     
     switch (tabValue) {
         case 0: // Monthly Expenses
@@ -202,7 +253,7 @@ const Analytics = () => {
               </Typography>
               <ExpenseChart
                 type="line"
-                data={charts.monthlyExpenses}
+                data={monthlyExpenses}
                 height={400}
               />
             </Paper>
@@ -218,7 +269,7 @@ const Analytics = () => {
                   </Typography>
                   <ExpenseChart
                     type="bar"
-                    data={charts.expenseCategories}
+                    data={expenseCategories}
                     height={400}
                   />
                 </Paper>
@@ -230,7 +281,7 @@ const Analytics = () => {
                   </Typography>
                   <ExpenseChart
                     type="pie"
-                    data={charts.expenseCategories}
+                    data={expenseCategories}
                     height={400}
                   />
                 </Paper>
@@ -246,7 +297,7 @@ const Analytics = () => {
               </Typography>
               <ExpenseChart
                 type="pie"
-                data={charts.statusDistribution}
+                data={statusDistribution}
                 height={400}
               />
             </Paper>
@@ -270,7 +321,7 @@ const Analytics = () => {
                   </Typography>
                   <ExpenseChart
                     type="bar"
-                    data={charts.departmentComparison}
+                    data={departmentComparison}
                     height={400}
                   />
                 </Paper>
@@ -283,7 +334,7 @@ const Analytics = () => {
                     </Typography>
                     <ExpenseChart
                       type="bar"
-                      data={charts.userRankings}
+                      data={userRankings}
                       height={400}
                     />
                   </Paper>
@@ -429,7 +480,7 @@ const Analytics = () => {
                 Total Daily Allowance
               </Typography>
               <Typography variant="h4" className="summary-value">
-                ${analyticsData.summary.totalDA?.toFixed(2) || '0.00'}
+                ${(analyticsData.summary?.totalDA || 0).toFixed(2)}
               </Typography>
             </Paper>
           </Grid>
@@ -440,7 +491,7 @@ const Analytics = () => {
                 Total Travel Allowance
               </Typography>
               <Typography variant="h4" className="summary-value">
-                ${analyticsData.summary.totalTA?.toFixed(2) || '0.00'}
+                ${(analyticsData.summary?.totalTA || 0).toFixed(2)}
               </Typography>
             </Paper>
           </Grid>
@@ -451,7 +502,7 @@ const Analytics = () => {
                 Total Expenses
               </Typography>
               <Typography variant="h4" className="summary-value">
-                ${analyticsData.summary.totalAmount?.toFixed(2) || '0.00'}
+                ${(analyticsData.summary?.totalAmount || 0).toFixed(2)}
               </Typography>
             </Paper>
           </Grid>
@@ -462,7 +513,7 @@ const Analytics = () => {
                 Approval Rate
               </Typography>
               <Typography variant="h4" className="summary-value">
-                {analyticsData.summary.approvalRate?.toFixed(1) || '0.0'}%
+                {(analyticsData.summary?.approvalRate || 0).toFixed(1)}%
               </Typography>
             </Paper>
           </Grid>

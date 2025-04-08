@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  TextField, Button, Grid, FormControl, 
+  TextField, Button, Grid, Box, Paper, Alert, CircularProgress, FormControl, 
   InputLabel, Select, MenuItem, Typography,
-  FormHelperText, CircularProgress
+  FormHelperText
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
@@ -42,9 +42,11 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
     setLoading(true);
     try {
       const response = await api.get('/cities');
-      setCities(response.data);
+      // Ensure cities is always an array
+      setCities(Array.isArray(response.data) ? response.data : []);
     } catch (error) {
       console.error('Error fetching cities:', error);
+      setCities([]); // Set to empty array on error
     } finally {
       setLoading(false);
     }
@@ -198,11 +200,11 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
               onChange={handleChange}
               label="From City"
             >
-{Array.isArray(cities) && cities.map(city => (
-  <MenuItem key={city.id} value={city.name}>
-    {city.name}, {city.state}
-  </MenuItem>
-))}
+              {Array.isArray(cities) && cities.map(city => (
+                <MenuItem key={city.id} value={city.name}>
+                  {city.name}, {city.state}
+                </MenuItem>
+              ))}
             </Select>
             {errors.fromCity && <FormHelperText>{errors.fromCity}</FormHelperText>}
           </FormControl>
@@ -217,7 +219,7 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
               onChange={handleChange}
               label="To City"
             >
-              {cities.map(city => (
+              {Array.isArray(cities) && cities.map(city => (
                 <MenuItem key={city.id} value={city.name}>
                   {city.name}, {city.state}
                 </MenuItem>

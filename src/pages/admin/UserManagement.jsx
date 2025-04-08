@@ -51,8 +51,43 @@ const UserManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   
   useEffect(() => {
+    const fetchUsers = async () => {
+      setLoading(true);
+      setError('');
+      
+      try {
+        console.log('Fetching users with filters:', {
+          search: searchText,
+          role: roleFilter,
+          status: statusFilter
+        });
+        
+        const filters = {
+          search: searchText,
+          role: roleFilter,
+          status: statusFilter
+        };
+        
+        const response = await UserService.getUsers(filters);
+        
+        console.log('Users API Response:', response);
+        
+        // Validate response
+        if (!Array.isArray(response)) {
+          throw new Error('Invalid response format');
+        }
+        
+        setUsers(response);
+      } catch (err) {
+        console.error('Full error details:', err);
+        setError(err.response?.data?.message || 'Failed to load users');
+      } finally {
+        setLoading(false);
+      }
+    };
+    
     fetchUsers();
-  }, []);
+  }, [searchText, roleFilter, statusFilter]);
   
   const fetchUsers = async () => {
     setLoading(true);

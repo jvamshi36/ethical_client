@@ -1,27 +1,48 @@
 import { api } from './auth.service';
 
+
+// src/services/config.js
+export const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
+
 const UserService = {
   getUsers: async (filters = {}) => {
     const params = new URLSearchParams();
     
+    // More explicit parameter handling
     if (filters.search) params.append('search', filters.search);
     if (filters.role) params.append('role', filters.role);
-    if (filters.department) params.append('department', filters.department);
-    if (filters.headquarters) params.append('headquarters', filters.headquarters);
-    if (filters.status !== 'all') params.append('isActive', filters.status === 'active');
+    
+    // More precise status handling
+    if (filters.status) {
+      if (filters.status === 'active') {
+        params.append('isActive', 'true');
+      } else if (filters.status === 'inactive') {
+        params.append('isActive', 'false');
+      }
+    }
+    
+    // Log the actual params being sent
+    console.log('Fetching users with params:', params.toString());
     
     const response = await api.get(`/users?${params.toString()}`);
     return response.data;
   },
-  
   getUserById: async (id) => {
     const response = await api.get(`/users/${id}`);
     return response.data;
   },
   
   createUser: async (userData) => {
-    const response = await api.post('/users', userData);
-    return response.data;
+    try {
+      console.log('Creating user with data:', userData);
+      console.log('Full API URL:', `${API_URL}/users`);
+      const response = await api.post('/users', userData);
+      return response.data;
+    } catch (error) {
+      console.error('Full error details:', error);
+      console.error('Error response:', error.response);
+      throw error;
+    }
   },
   
   updateUser: async (id, userData) => {
