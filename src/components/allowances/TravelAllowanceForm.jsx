@@ -198,11 +198,11 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
               onChange={handleChange}
               label="From City"
             >
-              {cities.map(city => (
-                <MenuItem key={city.id} value={city.name}>
-                  {city.name}, {city.state}
-                </MenuItem>
-              ))}
+{Array.isArray(cities) && cities.map(city => (
+  <MenuItem key={city.id} value={city.name}>
+    {city.name}, {city.state}
+  </MenuItem>
+))}
             </Select>
             {errors.fromCity && <FormHelperText>{errors.fromCity}</FormHelperText>}
           </FormControl>

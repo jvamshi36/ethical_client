@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { 
   TextField, Button, Grid, FormControl, InputLabel, Select,
-  MenuItem, Typography, Switch, FormControlLabel, InputAdornment, IconButton 
+  MenuItem, Typography, Switch, FormControlLabel, InputAdornment, IconButton,
+  Box, Alert, CircularProgress
 } from '@mui/material';
+import FormHelperText from '@mui/material/FormHelperText';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { api } from '../../services/auth.service';
+import { ROLES, ROLE_DISPLAY_NAMES } from '../../constants/roles';
 import '../../styles/components/admin.css';
 
 const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
@@ -24,38 +27,75 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
   const [showPassword, setShowPassword] = useState(false);
   const [departments, setDepartments] = useState([]);
   const [headquarters, setHeadquarters] = useState([]);
-  const [roles, setRoles] = useState([]);
   const [managers, setManagers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [apiError, setApiError] = useState(null);
   
   useEffect(() => {
     fetchReferenceData();
   }, []);
   
+  useEffect(() => {
+    if (formData.role) {
+      fetchManagers();
+    }
+  }, [formData.role]);
+  
   const fetchReferenceData = async () => {
+    setLoading(true);
+    setApiError(null);
+    
     try {
-      // Fetch departments
-      const deptResponse = await api.get('/reference/departments');
-      setDepartments(deptResponse.data);
+      const [deptResponse, hqResponse] = await Promise.all([
+        api.get('/reference/departments'),
+        api.get('/reference/headquarters')
+      ]);
       
-      // Fetch headquarters
-      const hqResponse = await api.get('/reference/headquarters');
-      setHeadquarters(hqResponse.data);
-      
-      // Fetch roles
-      const rolesResponse = await api.get('/reference/roles');
-      setRoles(rolesResponse.data);
-      
-      // Fetch potential managers
-      const managersResponse = await api.get('/users?roles=ABM,RBM,ZBM,DGM');
-      setManagers(managersResponse.data);
+      setDepartments(deptResponse.data || []);
+      setHeadquarters(hqResponse.data || []);
     } catch (error) {
       console.error('Error fetching reference data:', error);
+      setApiError('Failed to fetch reference data. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+  const fetchManagers = async () => {
+    if (!formData.role) return;
+    
+    try {
+      let managerRoles = '';
+      if ([ROLES.BE, ROLES.BM, ROLES.SBM].includes(formData.role)) {
+        managerRoles = `${ROLES.ABM},${ROLES.RBM}`;
+      } else if ([ROLES.ABM, ROLES.RBM].includes(formData.role)) {
+        managerRoles = `${ROLES.DGM},${ROLES.ZBM}`;
+      }
+      
+      if (managerRoles) {
+        const response = await api.get(`/users?roles=${managerRoles}`);
+        setManagers(response.data || []);
+      } else {
+        setManagers([]);
+      }
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+      setApiError('Failed to fetch managers. Please try again later.');
     }
   };
   
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    const newFormData = { ...formData, [name]: value };
+    
+    if (name === 'role') {
+      newFormData.reportingManagerId = '';
+    }
+    
+    setFormData(newFormData);
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: null });
+    }
   };
   
   const handleSwitchChange = (e) => {
@@ -79,23 +119,46 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.headquarters) newErrors.headquarters = 'Headquarters is required';
     
+    if (!['DGM', 'ZBM'].includes(formData.role) && !formData.reportingManagerId) {
+      newErrors.reportingManagerId = 'Reporting manager is required for this role';
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
     if (validate()) {
-      onSubmit(formData);
+      try {
+        await onSubmit(formData);
+      } catch (error) {
+        console.error('Error submitting form:', error);
+        setApiError('Failed to save user. Please try again.');
+      }
     }
   };
   
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
   return (
     <form onSubmit={handleSubmit} className="user-form">
-      <Typography variant="h6" className="form-title">
+      <Typography variant="h6" gutterBottom>
         {isEditMode ? 'Edit User' : 'Create New User'}
       </Typography>
+      
+      {apiError && (
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {apiError}
+        </Alert>
+      )}
       
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
@@ -108,7 +171,6 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
             required
             error={!!errors.fullName}
             helperText={errors.fullName}
-            className="form-input"
           />
         </Grid>
         
@@ -123,7 +185,6 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
             required
             error={!!errors.email}
             helperText={errors.email}
-            className="form-input"
           />
         </Grid>
         
@@ -138,7 +199,6 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
             error={!!errors.username}
             helperText={errors.username}
             disabled={isEditMode}
-            className="form-input"
           />
         </Grid>
         
@@ -157,22 +217,18 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
-                    <IconButton
-                      onClick={handleTogglePassword}
-                      edge="end"
-                    >
+                    <IconButton onClick={handleTogglePassword} edge="end">
                       {showPassword ? <VisibilityOff /> : <Visibility />}
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
-              className="form-input"
             />
           </Grid>
         )}
         
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth required error={!!errors.role} className="form-input">
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth error={!!errors.role}>
             <InputLabel>Role</InputLabel>
             <Select
               name="role"
@@ -180,17 +236,19 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               onChange={handleChange}
               label="Role"
             >
-              {roles.map(role => (
-                <MenuItem key={role.value} value={role.value}>
-                  {role.label}
+              <MenuItem value="">Select Role</MenuItem>
+              {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
+                <MenuItem key={value} value={value}>
+                  {label}
                 </MenuItem>
               ))}
             </Select>
+            {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
           </FormControl>
         </Grid>
         
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth required error={!!errors.department} className="form-input">
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth error={!!errors.department}>
             <InputLabel>Department</InputLabel>
             <Select
               name="department"
@@ -198,17 +256,19 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               onChange={handleChange}
               label="Department"
             >
+              <MenuItem value="">Select Department</MenuItem>
               {departments.map(dept => (
                 <MenuItem key={dept.id} value={dept.name}>
                   {dept.name}
                 </MenuItem>
               ))}
             </Select>
+            {errors.department && <FormHelperText>{errors.department}</FormHelperText>}
           </FormControl>
         </Grid>
         
-        <Grid item xs={12} md={4}>
-          <FormControl fullWidth required error={!!errors.headquarters} className="form-input">
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth error={!!errors.headquarters}>
             <InputLabel>Headquarters</InputLabel>
             <Select
               name="headquarters"
@@ -216,33 +276,40 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
               onChange={handleChange}
               label="Headquarters"
             >
+              <MenuItem value="">Select Headquarters</MenuItem>
               {headquarters.map(hq => (
                 <MenuItem key={hq.id} value={hq.name}>
                   {hq.name}
                 </MenuItem>
               ))}
             </Select>
+            {errors.headquarters && <FormHelperText>{errors.headquarters}</FormHelperText>}
           </FormControl>
         </Grid>
         
-        <Grid item xs={12}>
-          <FormControl fullWidth className="form-input">
-            <InputLabel>Reporting Manager</InputLabel>
-            <Select
-              name="reportingManagerId"
-              value={formData.reportingManagerId}
-              onChange={handleChange}
-              label="Reporting Manager"
-            >
-              <MenuItem value="">None</MenuItem>
-              {managers.map(manager => (
-                <MenuItem key={manager.id} value={manager.id}>
-                  {manager.full_name} ({manager.role})
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Grid>
+        {formData.role && !['DGM', 'ZBM'].includes(formData.role) && (
+          <Grid item xs={12} md={6}>
+            <FormControl fullWidth error={!!errors.reportingManagerId}>
+              <InputLabel>Reporting Manager</InputLabel>
+              <Select
+                name="reportingManagerId"
+                value={formData.reportingManagerId}
+                onChange={handleChange}
+                label="Reporting Manager"
+              >
+                <MenuItem value="">Select Manager</MenuItem>
+                {managers.map(manager => (
+                  <MenuItem key={manager.id} value={manager.id}>
+                    {manager.full_name} ({manager.role})
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.reportingManagerId && (
+                <FormHelperText>{errors.reportingManagerId}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+        )}
         
         <Grid item xs={12}>
           <FormControlLabel
@@ -251,11 +318,10 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
                 checked={formData.isActive}
                 onChange={handleSwitchChange}
                 name="isActive"
-                className="status-switch"
+                color="primary"
               />
             }
             label="Active User"
-            className="form-switch"
           />
         </Grid>
         
@@ -264,7 +330,7 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
             type="submit"
             variant="contained"
             color="primary"
-            className="submit-button"
+            size="large"
           >
             {isEditMode ? 'Update User' : 'Create User'}
           </Button>

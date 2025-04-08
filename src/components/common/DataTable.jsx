@@ -8,7 +8,7 @@ import {
 import {
   FilterList, Search, Delete, Refresh
 } from '@mui/icons-material';
-import '../../styles/components/futuristic.css';
+
 
 const DataTable = ({
   columns = [],

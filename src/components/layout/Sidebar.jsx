@@ -1,12 +1,15 @@
-import React from 'react';
-import { Drawer, List, ListItem, ListItemIcon, ListItemText, Divider, Collapse } from '@mui/material';
+import React, { useState } from 'react';
+import { 
+  Drawer, List, ListItem, ListItemIcon, ListItemText, 
+  Divider, Collapse, Box, Typography, Avatar
+} from '@mui/material';
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import { 
   Dashboard, AttachMoney, CardTravel, InsightsOutlined, 
-  Person, People, Settings, ExpandLess, ExpandMore 
+  Person, People, Settings, ExpandLess, ExpandMore, 
+  Layers, Analytics
 } from '@mui/icons-material';
-import { useState } from 'react';
 import '../../styles/components/layout.css';
 
 const Sidebar = ({ open }) => {
@@ -20,31 +23,31 @@ const Sidebar = ({ open }) => {
   const menuItems = [
     {
       text: 'Dashboard',
-      icon: <Dashboard />,
+      icon: <Dashboard className="menu-icon" />,
       path: '/',
       roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
     },
     {
       text: 'Daily Allowance',
-      icon: <AttachMoney />,
+      icon: <AttachMoney className="menu-icon" />,
       path: '/daily-allowance',
       roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
     },
     {
       text: 'Travel Allowance',
-      icon: <CardTravel />,
+      icon: <CardTravel className="menu-icon" />,
       path: '/travel-allowance',
       roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
     },
     {
       text: 'Analytics',
-      icon: <InsightsOutlined />,
+      icon: <InsightsOutlined className="menu-icon" />,
       path: '/analytics',
       roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
     },
     {
       text: 'Profile',
-      icon: <Person />,
+      icon: <Person className="menu-icon" />,
       path: '/profile',
       roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
     }
@@ -53,13 +56,13 @@ const Sidebar = ({ open }) => {
   const adminMenuItems = [
     {
       text: 'User Management',
-      icon: <People />,
+      icon: <People className="menu-icon" />,
       path: '/admin/users',
       roles: ['ADMIN', 'SUPER_ADMIN']
     },
     {
       text: 'System Settings',
-      icon: <Settings />,
+      icon: <Settings className="menu-icon" />,
       path: '/admin/settings',
       roles: ['ADMIN', 'SUPER_ADMIN']
     }
@@ -71,15 +74,36 @@ const Sidebar = ({ open }) => {
       anchor="left"
       open={open}
       className="sidebar"
+      classes={{
+        paper: "sidebar-paper"
+      }}
     >
-      <div className="sidebar-header">
-        <div className="logo-container">
-          <div className="app-logo"></div>
-          <h2>ExpenseManager</h2>
-        </div>
-      </div>
+      <Box className="sidebar-header">
+        <Box className="logo-container">
+          <Avatar className="app-logo glow-animation">
+            <Layers fontSize="small" />
+          </Avatar>
+          <Typography variant="h6" className="logo-text gradient-text-primary">
+            ExpenseManager
+          </Typography>
+        </Box>
+      </Box>
       
-      <Divider />
+      <Box className="user-profile">
+        <Avatar className="profile-avatar">
+          {currentUser?.fullName?.charAt(0) || 'U'}
+        </Avatar>
+        <Box className="profile-info">
+          <Typography variant="subtitle2" noWrap>
+            {currentUser?.fullName}
+          </Typography>
+          <Typography variant="caption" className="role-badge">
+            {currentUser?.role}
+          </Typography>
+        </Box>
+      </Box>
+      
+      <Divider className="sidebar-divider" />
       
       <List className="sidebar-menu">
         {menuItems.map((item) => (
@@ -90,8 +114,9 @@ const Sidebar = ({ open }) => {
               to={item.path}
               key={item.text}
               className="menu-item"
+              activeClassName="active"
             >
-              <ListItemIcon className="menu-icon">{item.icon}</ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItem>
           )
@@ -99,10 +124,10 @@ const Sidebar = ({ open }) => {
         
         {hasRole(['ADMIN', 'SUPER_ADMIN']) && (
           <>
-            <Divider />
-            <ListItem button onClick={handleAdminClick} className="menu-item">
-              <ListItemIcon className="menu-icon"><Settings /></ListItemIcon>
-              <ListItemText primary="Admin" />
+            <Divider className="sidebar-divider" />
+            <ListItem button onClick={handleAdminClick} className="menu-item admin-header">
+              <ListItemIcon><Settings className="menu-icon" /></ListItemIcon>
+              <ListItemText primary="Administration" />
               {adminOpen ? <ExpandLess /> : <ExpandMore />}
             </ListItem>
             
@@ -116,8 +141,9 @@ const Sidebar = ({ open }) => {
                       to={item.path}
                       key={item.text}
                       className="submenu-item"
+                      activeClassName="active"
                     >
-                      <ListItemIcon className="menu-icon">{item.icon}</ListItemIcon>
+                      <ListItemIcon>{item.icon}</ListItemIcon>
                       <ListItemText primary={item.text} />
                     </ListItem>
                   )
@@ -127,6 +153,15 @@ const Sidebar = ({ open }) => {
           </>
         )}
       </List>
+      
+      <Box className="sidebar-footer">
+        <Typography variant="caption" color="textSecondary">
+          © 2025 ExpenseManager
+        </Typography>
+        <Typography variant="caption" color="textSecondary">
+          v1.0.0
+        </Typography>
+      </Box>
     </Drawer>
   );
 };
