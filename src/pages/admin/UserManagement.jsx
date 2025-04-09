@@ -120,10 +120,26 @@ const UserManagement = () => {
   };
   
   const handleEditUser = (user) => {
-    setSelectedUser(user);
+    console.log('Editing user with data:', user);
+    
+    // Format the user data to match the form field names
+    const formattedUser = {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      fullName: user.fullName,
+      role: user.role,
+      department: user.department,
+      headquarters: user.headquarters,
+      reportingManagerId: user.reportingManagerId || '',
+      isActive: user.isActive
+    };
+    
+    setSelectedUser(formattedUser);
     setEditMode(true);
     setFormOpen(true);
   };
+  
   
   const handleViewTeam = (user) => {
     setSelectedUser(user);
@@ -160,9 +176,14 @@ const UserManagement = () => {
   const handleUserFormSubmit = async (userData) => {
     try {
       if (editMode) {
+        // Get the user ID from the selectedUser for edit mode
+        console.log('Updating user with ID:', selectedUser.id);
+        console.log('Update data:', userData);
+        
         await UserService.updateUser(selectedUser.id, userData);
         setSuccess(`User ${userData.username} has been updated`);
       } else {
+        console.log('Creating new user with data:', userData);
         await UserService.createUser(userData);
         setSuccess(`User ${userData.username} has been created`);
       }
@@ -170,10 +191,11 @@ const UserManagement = () => {
       setFormOpen(false);
       fetchUsers();
     } catch (err) {
-      setError('Failed to save user. Please try again later.');
       console.error('Error saving user:', err);
+      setError('Failed to save user. Please try again later.');
     }
   };
+
   
   const handlePasswordInputChange = (e) => {
     const { name, value } = e.target;

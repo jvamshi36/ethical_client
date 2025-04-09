@@ -46,8 +46,32 @@ const UserService = {
   },
   
   updateUser: async (id, userData) => {
-    const response = await api.put(`/users/${id}`, userData);
-    return response.data;
+    try {
+      console.log(`Updating user ID ${id} with data:`, userData);
+      
+      // Make sure we're sending the correct data structure
+      // Ensure reportingManagerId is a string or null
+      const formattedData = {
+        email: userData.email,
+        fullName: userData.fullName,
+        role: userData.role,
+        department: userData.department,
+        headquarters: userData.headquarters,
+        reportingManagerId: userData.reportingManagerId ? String(userData.reportingManagerId) : null, // Ensure it's a string or null
+        isActive: userData.isActive
+      };
+      
+      console.log('Formatted update data:', formattedData);
+      console.log('API URL:', `/users/${id}`);
+      
+      const response = await api.put(`/users/${id}`, formattedData);
+      console.log('Update response:', response);
+      return response.data;
+    } catch (error) {
+      console.error('Full error details:', error);
+      console.error('Error response:', error.response?.data);
+      throw error;
+    }
   },
   
   deleteUser: async (id) => {

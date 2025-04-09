@@ -11,7 +11,7 @@ import { ROLES, ROLE_DISPLAY_NAMES } from '../../constants/roles';
 import '../../styles/components/admin.css';
 
 const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
-  const [formData, setFormData] = useState(initialData || {
+  const [formData, setFormData] = useState({
     username: '',
     password: '',
     email: '',
@@ -31,15 +31,35 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
   const [loading, setLoading] = useState(true);
   const [apiError, setApiError] = useState(null);
   
+  // Initialize form with initialData if in edit mode
   useEffect(() => {
+    if (initialData) {
+      // Ensure reportingManagerId is a string or empty string
+      const reportingId = initialData.reportingManagerId || '';
+      
+      setFormData({
+        username: initialData.username || '',
+        password: '',  // Don't populate password in edit mode
+        email: initialData.email || '',
+        fullName: initialData.fullName || '',
+        role: initialData.role || '',
+        department: initialData.department || '',
+        headquarters: initialData.headquarters || '',
+        reportingManagerId: String(reportingId), // Ensure it's a string
+        isActive: initialData.isActive !== undefined ? initialData.isActive : true
+      });
+      
+      console.log('Initialized form with reportingManagerId:', String(reportingId));
+    }
     fetchReferenceData();
-  }, []);
+  }, [initialData]);
   
+  // Fetch managers when role or headquarters changes
   useEffect(() => {
     if (formData.role) {
       fetchManagers();
     }
-  }, [formData.role]);
+  }, [formData.role, formData.headquarters]);
   
   const fetchReferenceData = async () => {
     setLoading(true);
@@ -75,17 +95,31 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
         managerRoles = `${ROLES.ABM},${ROLES.RBM}`;
       } else if ([ROLES.ABM, ROLES.RBM].includes(formData.role)) {
         managerRoles = `${ROLES.DGM},${ROLES.ZBM}`;
+      } else {
+        // No manager roles needed for top-level roles
+        setManagers([]);
+        return;
       }
       
       if (managerRoles) {
-        const response = await api.get(`/users?roles=${managerRoles}`);
+        // Include headquarters in the query to filter managers by the same headquarters
+        const url = formData.headquarters 
+          ? `/users?roles=${managerRoles}&headquarters=${encodeURIComponent(formData.headquarters)}`
+          : `/users?roles=${managerRoles}`;
+          
+        console.log('Fetching managers with URL:', url);
+        const response = await api.get(url);
+        
+        // Log the response for debugging
+        console.log('Managers response:', response.data);
+        
         // Ensure managers is an array
         setManagers(Array.isArray(response.data) ? response.data : []);
       } else {
         setManagers([]);
       }
-    } catch (error) {
-      console.error('Error fetching managers:', error);
+    } catch (err) {
+      console.error('Error fetching managers:', err);
       setApiError('Failed to fetch managers. Please try again later.');
       // Initialize with empty array to prevent mapping errors
       setManagers([]);
@@ -94,9 +128,24 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
   
   const handleChange = (e) => {
     const { name, value } = e.target;
-    const newFormData = { ...formData, [name]: value };
+    let newValue = value;
     
+    // Special handling for reportingManagerId to ensure it's a string or empty string
+    if (name === 'reportingManagerId') {
+      // Convert any non-string value to string, or empty string if null/undefined
+      newValue = value === null || value === undefined ? '' : String(value);
+      console.log(`Converted reportingManagerId from ${value} to ${newValue}`);
+    }
+    
+    const newFormData = { ...formData, [name]: newValue };
+    
+    // Reset reportingManagerId when role changes
     if (name === 'role') {
+      newFormData.reportingManagerId = '';
+    }
+    
+    // Reset reportingManagerId when headquarters changes
+    if (name === 'headquarters') {
       newFormData.reportingManagerId = '';
     }
     
@@ -127,9 +176,8 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.headquarters) newErrors.headquarters = 'Headquarters is required';
     
-    if (!['DGM', 'ZBM'].includes(formData.role) && !formData.reportingManagerId) {
-      newErrors.reportingManagerId = 'Reporting manager is required for this role';
-    }
+    // Make reporting manager optional for all roles
+    // The field will still show up for relevant roles, but it's not mandatory
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -140,6 +188,14 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     
     if (validate()) {
       try {
+        // If we're in edit mode, include the ID in the log
+        if (isEditMode && initialData) {
+          console.log('Submitting edited user data with ID:', initialData.id);
+        }
+        
+        // Log the form data being submitted
+        console.log('Submitting form data:', formData);
+        
         await onSubmit(formData);
       } catch (error) {
         console.error('Error submitting form:', error);
@@ -295,22 +351,26 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
           </FormControl>
         </Grid>
         
-        {formData.role && !['DGM', 'ZBM'].includes(formData.role) && (
+        {formData.role && !['DGM', 'ZBM', 'ADMIN', 'SUPER_ADMIN'].includes(formData.role) && (
           <Grid item xs={12} md={6}>
             <FormControl fullWidth error={!!errors.reportingManagerId}>
-              <InputLabel>Reporting Manager</InputLabel>
+              <InputLabel>Reporting Manager (Optional)</InputLabel>
               <Select
                 name="reportingManagerId"
                 value={formData.reportingManagerId}
                 onChange={handleChange}
-                label="Reporting Manager"
+                label="Reporting Manager (Optional)"
               >
-                <MenuItem value="">Select Manager</MenuItem>
-                {Array.isArray(managers) && managers.map(manager => (
-                  <MenuItem key={manager.id} value={manager.id}>
-                    {manager.full_name} ({manager.role})
-                  </MenuItem>
-                ))}
+                <MenuItem value="">None</MenuItem>
+                {Array.isArray(managers) && managers.length > 0 ? (
+                  managers.map(manager => (
+                    <MenuItem key={manager.id} value={manager.id}>
+                      {manager.fullName || manager.full_name} ({manager.role})
+                    </MenuItem>
+                  ))
+                ) : (
+                  <MenuItem disabled>No managers available</MenuItem>
+                )}
               </Select>
               {errors.reportingManagerId && (
                 <FormHelperText>{errors.reportingManagerId}</FormHelperText>
