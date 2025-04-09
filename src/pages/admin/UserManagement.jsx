@@ -1,22 +1,20 @@
+// src/pages/admin/UserManagement.jsx
 import React, { useState, useEffect } from 'react';
-import { Typography,
-  Button, Box, Alert, CircularProgress, Dialog, DialogTitle, 
-  DialogContent, DialogActions, Chip, Tooltip,
-  TextField, MenuItem, InputAdornment, IconButton
+import { 
+  Typography, Button, Box, Paper, Alert, CircularProgress,
+  TextField, InputAdornment, IconButton
 } from '@mui/material';
 import { 
-  Add, Search, Edit, Delete, Visibility, VisibilityOff,
-  Person, VerifiedUser, PersonAdd
+  Add, Search, FilterList
 } from '@mui/icons-material';
 import PageContainer from '../../components/layout/PageContainer';
 import DataTable from '../../components/common/DataTable';
 import UserForm from '../../components/admin/UserForm';
-import TeamManagement from '../../components/admin/TeamManagement';
+import UserDetails from './UserDetails';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
-import FormField from '../../components/common/FormField';
 import { useAuth } from '../../contexts/AuthContext';
 import UserService from '../../services/user.service';
-import { ROLES, ROLE_DISPLAY_NAMES } from '../../constants/roles';
+import { ROLE_DISPLAY_NAMES } from '../../constants/roles';
 import '../../styles/components/admin.css';
 
 const UserManagement = () => {
@@ -30,17 +28,7 @@ const UserManagement = () => {
   const [formOpen, setFormOpen] = useState(false);
   const [editMode, setEditMode] = useState(false);
   const [selectedUser, setSelectedUser] = useState(null);
-  
-  // Password reset dialog
-  const [passwordResetOpen, setPasswordResetOpen] = useState(false);
-  const [passwordData, setPasswordData] = useState({
-    newPassword: '',
-    confirmPassword: '',
-    showPassword: false
-  });
-  
-  // Team management dialog
-  const [teamManagementOpen, setTeamManagementOpen] = useState(false);
+  const [selectedUserForDetails, setSelectedUserForDetails] = useState(null);
   
   // Delete confirmation
   const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
@@ -51,43 +39,8 @@ const UserManagement = () => {
   const [statusFilter, setStatusFilter] = useState('all');
   
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoading(true);
-      setError('');
-      
-      try {
-        console.log('Fetching users with filters:', {
-          search: searchText,
-          role: roleFilter,
-          status: statusFilter
-        });
-        
-        const filters = {
-          search: searchText,
-          role: roleFilter,
-          status: statusFilter
-        };
-        
-        const response = await UserService.getUsers(filters);
-        
-        console.log('Users API Response:', response);
-        
-        // Validate response
-        if (!Array.isArray(response)) {
-          throw new Error('Invalid response format');
-        }
-        
-        setUsers(response);
-      } catch (err) {
-        console.error('Full error details:', err);
-        setError(err.response?.data?.message || 'Failed to load users');
-      } finally {
-        setLoading(false);
-      }
-    };
-    
     fetchUsers();
-  }, [searchText, roleFilter, statusFilter]);
+  }, []);
   
   const fetchUsers = async () => {
     setLoading(true);
@@ -97,20 +50,16 @@ const UserManagement = () => {
       const filters = {};
       if (searchText) filters.search = searchText;
       if (roleFilter) filters.role = roleFilter;
-      if (statusFilter !== 'all') filters.status = statusFilter;
+      if (statusFilter !== 'all') filters.status = statusFilter === 'active';
       
       const response = await UserService.getUsers(filters);
-      setUsers(response);
+      setUsers(Array.isArray(response) ? response : []);
     } catch (err) {
       setError('Failed to load users. Please try again later.');
       console.error('Error fetching users:', err);
     } finally {
       setLoading(false);
     }
-  };
-  
-  const handleSearch = () => {
-    fetchUsers();
   };
   
   const handleCreateUser = () => {
@@ -120,40 +69,18 @@ const UserManagement = () => {
   };
   
   const handleEditUser = (user) => {
-    console.log('Editing user with data:', user);
-    
-    // Format the user data to match the form field names
-    const formattedUser = {
-      id: user.id,
-      username: user.username,
-      email: user.email,
-      fullName: user.fullName,
-      role: user.role,
-      department: user.department,
-      headquarters: user.headquarters,
-      reportingManagerId: user.reportingManagerId || '',
-      isActive: user.isActive
-    };
-    
-    setSelectedUser(formattedUser);
+    setSelectedUser(user);
     setEditMode(true);
     setFormOpen(true);
   };
-  
-  
-  const handleViewTeam = (user) => {
-    setSelectedUser(user);
-    setTeamManagementOpen(true);
+
+  const handleViewUserDetails = (user) => {
+    setSelectedUserForDetails(user);
   };
   
-  const handleResetPassword = (user) => {
-    setSelectedUser(user);
-    setPasswordData({
-      newPassword: '',
-      confirmPassword: '',
-      showPassword: false
-    });
-    setPasswordResetOpen(true);
+  const handleCloseUserDetails = () => {
+    setSelectedUserForDetails(null);
+    fetchUsers(); // Refresh the list when closing details
   };
   
   const handleDeleteUser = (user) => {
@@ -176,14 +103,9 @@ const UserManagement = () => {
   const handleUserFormSubmit = async (userData) => {
     try {
       if (editMode) {
-        // Get the user ID from the selectedUser for edit mode
-        console.log('Updating user with ID:', selectedUser.id);
-        console.log('Update data:', userData);
-        
         await UserService.updateUser(selectedUser.id, userData);
         setSuccess(`User ${userData.username} has been updated`);
       } else {
-        console.log('Creating new user with data:', userData);
         await UserService.createUser(userData);
         setSuccess(`User ${userData.username} has been created`);
       }
@@ -195,37 +117,9 @@ const UserManagement = () => {
       setError('Failed to save user. Please try again later.');
     }
   };
-
   
-  const handlePasswordInputChange = (e) => {
-    const { name, value } = e.target;
-    setPasswordData({
-      ...passwordData,
-      [name]: value
-    });
-  };
-  
-  const togglePasswordVisibility = () => {
-    setPasswordData({
-      ...passwordData,
-      showPassword: !passwordData.showPassword
-    });
-  };
-  
-  const handleResetPasswordSubmit = async () => {
-    if (passwordData.newPassword !== passwordData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
-    }
-    
-    try {
-      await UserService.resetPassword(selectedUser.id, passwordData.newPassword);
-      setPasswordResetOpen(false);
-      setSuccess(`Password for user ${selectedUser.username} has been reset`);
-    } catch (err) {
-      setError('Failed to reset password. Please try again later.');
-      console.error('Error resetting password:', err);
-    }
+  const handleSearch = () => {
+    fetchUsers();
   };
   
   // Table columns configuration
@@ -239,70 +133,58 @@ const UserManagement = () => {
     { 
       id: 'role', 
       label: 'Role',
-      render: (value) => (
-        <Chip 
-          label={ROLE_DISPLAY_NAMES[value] || value} 
-          color={
-            ['ADMIN', 'SUPER_ADMIN'].includes(value) ? 'error' :
-            ['ZBM', 'DGM'].includes(value) ? 'warning' :
-            ['ABM', 'RBM'].includes(value) ? 'info' : 'default'
-          }
-          size="small"
-        />
-      )
+      render: (value) => ROLE_DISPLAY_NAMES[value] || value
     },
     { id: 'department', label: 'Department' },
     { id: 'headquarters', label: 'Headquarters' },
     {
       id: 'isActive',
       label: 'Status',
-      render: (value) => (
-        <Chip 
-          label={value ? 'Active' : 'Inactive'} 
-          color={value ? 'success' : 'default'}
-          size="small"
-        />
-      )
+      render: (value) => value ? 'Active' : 'Inactive'
     },
     {
       id: 'actions',
       label: 'Actions',
       render: (_, row) => (
-        <Box>
-          <Tooltip title="Edit User">
-            <IconButton size="small" onClick={() => handleEditUser(row)}>
-              <Edit fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          
-          {['ABM', 'RBM', 'ZBM', 'DGM'].includes(row.role) && (
-            <Tooltip title="Manage Team">
-              <IconButton size="small" onClick={() => handleViewTeam(row)}>
-                <PersonAdd fontSize="small" />
-              </IconButton>
-            </Tooltip>
-          )}
-          
-          <Tooltip title="Reset Password">
-            <IconButton size="small" onClick={() => handleResetPassword(row)}>
-              <VerifiedUser fontSize="small" />
-            </IconButton>
-          </Tooltip>
-          
-          <Tooltip title="Delete User">
-            <IconButton 
-              size="small" 
-              onClick={() => handleDeleteUser(row)}
-              disabled={row.id === currentUser.id}
-              color="error"
-            >
-              <Delete fontSize="small" />
-            </IconButton>
-          </Tooltip>
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            onClick={() => handleViewUserDetails(row)}
+          >
+            View Details
+          </Button>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            onClick={() => handleEditUser(row)}
+          >
+            Edit
+          </Button>
+          <Button 
+            size="small" 
+            variant="outlined" 
+            color="error"
+            onClick={() => handleDeleteUser(row)}
+            disabled={row.id === currentUser?.id}
+          >
+            Delete
+          </Button>
         </Box>
       )
     }
   ];
+  
+  // If viewing user details, show that component
+  if (selectedUserForDetails) {
+    return (
+      <UserDetails 
+        user={selectedUserForDetails} 
+        onBack={handleCloseUserDetails}
+        onUserUpdate={fetchUsers}
+      />
+    );
+  }
   
   return (
     <PageContainer 
@@ -331,169 +213,103 @@ const UserManagement = () => {
       )}
       
       {/* Search and filters */}
-      <Box sx={{ mb: 3, display: 'flex', gap: 2 }}>
-        <TextField
-          placeholder="Search users..."
-          value={searchText}
-          onChange={(e) => setSearchText(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <Search />
-              </InputAdornment>
-            ),
-          }}
-          size="small"
-          sx={{ width: 300 }}
-        />
-        
-        <TextField
-          select
-          label="Role"
-          value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
-          size="small"
-          sx={{ width: 200 }}
-        >
-          <MenuItem value="">All Roles</MenuItem>
-          {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
-            <MenuItem key={value} value={value}>
-              {label}
-            </MenuItem>
-          ))}
-        </TextField>
-        
-        <TextField
-          select
-          label="Status"
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          size="small"
-          sx={{ width: 150 }}
-        >
-          <MenuItem value="all">All Status</MenuItem>
-          <MenuItem value="active">Active</MenuItem>
-          <MenuItem value="inactive">Inactive</MenuItem>
-        </TextField>
-        
-        <Button 
-          variant="contained"
-          onClick={handleSearch}
-        >
-          Search
-        </Button>
-      </Box>
+      <Paper sx={{ p: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+          <TextField
+            label="Search"
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position="start">
+                  <Search />
+                </InputAdornment>
+              ),
+            }}
+            size="small"
+            sx={{ flexGrow: 1, minWidth: 200 }}
+          />
+          
+          <TextField
+            select
+            label="Role"
+            value={roleFilter}
+            onChange={(e) => setRoleFilter(e.target.value)}
+            SelectProps={{
+              native: true,
+            }}
+            size="small"
+            sx={{ minWidth: 150 }}
+          >
+            <option value="">All Roles</option>
+            {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </TextField>
+          
+          <TextField
+            select
+            label="Status"
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            SelectProps={{
+              native: true,
+            }}
+            size="small"
+            sx={{ minWidth: 120 }}
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </TextField>
+          
+          <Button 
+            variant="contained" 
+            startIcon={<FilterList />}
+            onClick={handleSearch}
+          >
+            Filter
+          </Button>
+        </Box>
+      </Paper>
       
-      {/* Users Data Table */}
-      <DataTable
-        columns={columns}
-        data={users}
-        loading={loading}
-        title="Users"
-      />
+      {/* Users Table */}
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+          <CircularProgress />
+        </Box>
+      ) : (
+        <Paper>
+          <DataTable
+            columns={columns}
+            data={users}
+            loading={loading}
+          />
+        </Paper>
+      )}
       
       {/* User Form Dialog */}
-      <Dialog
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>
-          {editMode ? 'Edit User' : 'Create New User'}
-        </DialogTitle>
-        <DialogContent>
+      {formOpen && (
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <Typography variant="h6" gutterBottom>
+            {editMode ? 'Edit User' : 'Add New User'}
+          </Typography>
           <UserForm
             initialData={selectedUser}
             isEditMode={editMode}
             onSubmit={handleUserFormSubmit}
           />
-        </DialogContent>
-      </Dialog>
-      
-      {/* Password Reset Dialog */}
-      <Dialog
-        open={passwordResetOpen}
-        onClose={() => setPasswordResetOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle>Reset Password</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            <Typography variant="body2" sx={{ mb: 2 }}>
-              Reset password for user: <strong>{selectedUser?.username}</strong>
-            </Typography>
-            
-            <TextField
-              label="New Password"
-              name="newPassword"
-              type={passwordData.showPassword ? 'text' : 'password'}
-              value={passwordData.newPassword}
-              onChange={handlePasswordInputChange}
-              fullWidth
-              required
-              margin="normal"
-              InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton
-                      onClick={togglePasswordVisibility}
-                      edge="end"
-                    >
-                      {passwordData.showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
-              }}
-            />
-            
-            <TextField
-              label="Confirm Password"
-              name="confirmPassword"
-              type={passwordData.showPassword ? 'text' : 'password'}
-              value={passwordData.confirmPassword}
-              onChange={handlePasswordInputChange}
-              fullWidth
-              required
-              margin="normal"
-              error={passwordData.newPassword !== passwordData.confirmPassword && passwordData.confirmPassword !== ''}
-              helperText={passwordData.newPassword !== passwordData.confirmPassword && passwordData.confirmPassword !== '' ? 'Passwords do not match' : ''}
-            />
+          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+            <Button 
+              variant="outlined" 
+              onClick={() => setFormOpen(false)}
+              sx={{ mr: 2 }}
+            >
+              Cancel
+            </Button>
           </Box>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setPasswordResetOpen(false)}>Cancel</Button>
-          <Button
-            onClick={handleResetPasswordSubmit}
-            variant="contained"
-            color="primary"
-            disabled={!passwordData.newPassword || passwordData.newPassword !== passwordData.confirmPassword}
-          >
-            Reset Password
-          </Button>
-        </DialogActions>
-      </Dialog>
-      
-      {/* Team Management Dialog */}
-      <Dialog
-        open={teamManagementOpen}
-        onClose={() => setTeamManagementOpen(false)}
-        maxWidth="md"
-        fullWidth
-      >
-        <DialogTitle>Manage Team</DialogTitle>
-        <DialogContent>
-          {selectedUser && (
-            <TeamManagement
-              managerId={selectedUser.id}
-            />
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setTeamManagementOpen(false)}>Close</Button>
-        </DialogActions>
-      </Dialog>
+        </Paper>
+      )}
       
       {/* Confirm Delete Dialog */}
       <ConfirmDialog

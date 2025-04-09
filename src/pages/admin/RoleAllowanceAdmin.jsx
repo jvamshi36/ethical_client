@@ -112,7 +112,7 @@ const RoleAllowanceAdmin = () => {
                         helperText={isNaN(parseFloat(editAmount)) || parseFloat(editAmount) <= 0 ? 'Enter valid amount' : ''}
                       />
                     ) : (
-                      `$${allowance.daily_amount.toFixed(2)}`
+                      `$${parseFloat(allowance.daily_amount || 0).toFixed(2)}`
                     )}
                   </TableCell>
                   <TableCell align="center">

@@ -1,3 +1,4 @@
+// src/services/allowance.service.js
 import { api } from './auth.service';
 
 // Daily Allowance Service
@@ -65,14 +66,58 @@ const TravelAllowanceService = {
     return response.data;
   },
   
-  createAllowance: async (allowanceData) => {
-    const response = await api.post('/ta', allowanceData);
+  getUserTravelRoutes: async () => {
+    const response = await api.get('/travel-routes/my-routes');
     return response.data;
   },
   
+  validateRoute: async (fromCity, toCity) => {
+    try {
+      // Check if this route is configured for the user
+      const response = await api.post('/ta/validate-route', { fromCity, toCity });
+      return response.data;
+    } catch (error) {
+      // Route validation failed
+      console.error('Route validation error:', error);
+      throw error;
+    }
+  },
+  
+  createAllowance: async (allowanceData) => {
+    // First validate the route
+    try {
+      await TravelAllowanceService.validateRoute(
+        allowanceData.fromCity, 
+        allowanceData.toCity
+      );
+      
+      // Then create the allowance
+      const response = await api.post('/ta', allowanceData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+  
   updateAllowance: async (id, allowanceData) => {
-    const response = await api.put(`/ta/${id}`, allowanceData);
-    return response.data;
+    try {
+      // First validate the route if it changed
+      const currentAllowance = await TravelAllowanceService.getAllowanceById(id);
+      
+      if (currentAllowance.fromCity !== allowanceData.fromCity || 
+          currentAllowance.toCity !== allowanceData.toCity) {
+        await TravelAllowanceService.validateRoute(
+          allowanceData.fromCity, 
+          allowanceData.toCity
+        );
+      }
+      
+      // Then update the allowance
+      const response = await api.put(`/ta/${id}`, allowanceData);
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
   },
   
   deleteAllowance: async (id) => {
@@ -85,9 +130,15 @@ const TravelAllowanceService = {
     return response.data;
   },
   
+  // Use the city routes instead of ta routes for distance calculation
   calculateDistance: async (fromCity, toCity) => {
-    const response = await api.post('/cities/distance', { fromCity, toCity });
-    return response.data;
+    try {
+      const response = await api.post('/cities/distance', { fromCity, toCity });
+      return response.data;
+    } catch (error) {
+      console.error('Error calculating distance:', error);
+      throw error;
+    }
   }
 };
 

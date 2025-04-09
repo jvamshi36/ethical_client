@@ -8,6 +8,7 @@ import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { api } from '../../services/auth.service';
+import { TravelAllowanceService } from '../../services/allowance.service';
 import '../../styles/components/allowances.css';
 
 const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
@@ -22,111 +23,96 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
   });
   
   const [errors, setErrors] = useState({});
-  const [cities, setCities] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [calculatingDistance, setCalculatingDistance] = useState(false);
+  const [routeLoading, setRouteLoading] = useState(false);
+  const [userRoutes, setUserRoutes] = useState([]);
+  const [selectedRoute, setSelectedRoute] = useState('');
   
-  // Travel modes with rates per km
+  // Travel modes list
   const travelModes = [
-    { value: 'CAR', label: 'Car', rate: 0.6 },
-    { value: 'BIKE', label: 'Bike', rate: 0.3 },
-    { value: 'PUBLIC', label: 'Public Transport', rate: 0.2 },
-    { value: 'OTHER', label: 'Other', rate: 0 }
+    { value: 'CAR', label: 'Car' },
+    { value: 'BIKE', label: 'Bike' },
+    { value: 'PUBLIC', label: 'Public Transport' },
+    { value: 'OTHER', label: 'Other' }
   ];
   
   useEffect(() => {
-    fetchCities();
-  }, []);
+    fetchUserRoutes();
+    
+    // If in edit mode, set the selected route
+    if (isEditMode && initialData) {
+      const routeKey = `${initialData.fromCity}|${initialData.toCity}`;
+      setSelectedRoute(routeKey);
+    }
+  }, [isEditMode, initialData]);
   
-  const fetchCities = async () => {
+  const fetchUserRoutes = async () => {
     setLoading(true);
     try {
-      const response = await api.get('/cities');
-      // Ensure cities is always an array
-      setCities(Array.isArray(response.data) ? response.data : []);
+      // Fetch user's predefined travel routes - using the correct endpoint
+      const response = await TravelAllowanceService.getUserTravelRoutes();
+      
+      // Ensure we have an array
+      const routes = Array.isArray(response) ? response : [];
+      setUserRoutes(routes);
+      
+      setLoading(false);
     } catch (error) {
-      console.error('Error fetching cities:', error);
-      setCities([]); // Set to empty array on error
-    } finally {
+      console.error('Error fetching user routes:', error);
       setLoading(false);
     }
   };
   
   const handleChange = (e) => {
     const { name, value } = e.target;
+    setFormData({ ...formData, [name]: value });
     
-    if (name === 'fromCity' || name === 'toCity') {
-      setFormData({ ...formData, [name]: value });
-      
-      // If both cities are selected, calculate distance
-      if ((name === 'fromCity' && formData.toCity) || 
-          (name === 'toCity' && formData.fromCity)) {
-        calculateDistance(
-          name === 'fromCity' ? value : formData.fromCity,
-          name === 'toCity' ? value : formData.toCity
-        );
-      }
-    } else if (name === 'distance' || name === 'travelMode') {
-      const newFormData = { ...formData, [name]: value };
-      
-      // Update distance and recalculate amount
-      if (name === 'distance') {
-        const selectedMode = travelModes.find(mode => mode.value === formData.travelMode);
-        if (selectedMode && selectedMode.rate > 0) {
-          newFormData.amount = (parseFloat(value) * selectedMode.rate).toFixed(2);
-        }
-      }
-      
-      // Update travel mode and recalculate amount
-      if (name === 'travelMode') {
-        const selectedMode = travelModes.find(mode => mode.value === value);
-        if (selectedMode && selectedMode.rate > 0 && formData.distance) {
-          newFormData.amount = (parseFloat(formData.distance) * selectedMode.rate).toFixed(2);
-        } else if (selectedMode && selectedMode.rate === 0) {
-          newFormData.amount = '';
-        }
-      }
-      
-      setFormData(newFormData);
-    } else {
-      setFormData({ ...formData, [name]: value });
+    // Clear validation errors
+    if (errors[name]) {
+      setErrors({ ...errors, [name]: undefined });
     }
   };
   
   const handleDateChange = (date) => {
     setFormData({ ...formData, date });
+    
+    if (errors.date) {
+      setErrors({ ...errors, date: undefined });
+    }
   };
   
-  const calculateDistance = async (fromCity, toCity) => {
-    if (!fromCity || !toCity || fromCity === toCity) return;
+  const handleRouteChange = (e) => {
+    const routeKey = e.target.value;
+    setSelectedRoute(routeKey);
     
-    setCalculatingDistance(true);
-    try {
-      // Call API to calculate distance between cities
-      const response = await api.post('/cities/distance', {
-        fromCity,
-        toCity
-      });
-      
-      const { distance } = response.data;
-      
-      // Update distance and calculate amount
-      const selectedMode = travelModes.find(mode => mode.value === formData.travelMode);
-      let amount = '';
-      
-      if (selectedMode && selectedMode.rate > 0) {
-        amount = (distance * selectedMode.rate).toFixed(2);
-      }
-      
+    if (!routeKey) return;
+    
+    // Parse the selected route key (format: "fromCity|toCity")
+    const [fromCity, toCity] = routeKey.split('|');
+    
+    // Find the route details
+    const route = userRoutes.find(r => 
+      r.from_city === fromCity && r.to_city === toCity
+    );
+    
+    if (route) {
+      // Update form with route details
       setFormData({
         ...formData,
-        distance,
-        amount
+        fromCity,
+        toCity,
+        distance: route.distance,
+        amount: route.amount
       });
-    } catch (error) {
-      console.error('Error calculating distance:', error);
-    } finally {
-      setCalculatingDistance(false);
+      
+      // Clear validation errors
+      setErrors({
+        ...errors,
+        fromCity: undefined,
+        toCity: undefined,
+        distance: undefined,
+        amount: undefined
+      });
     }
   };
   
@@ -134,10 +120,10 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
     const newErrors = {};
     
     if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.fromCity) newErrors.fromCity = 'From city is required';
-    if (!formData.toCity) newErrors.toCity = 'To city is required';
+    if (!formData.fromCity) newErrors.fromCity = 'Origin city is required';
+    if (!formData.toCity) newErrors.toCity = 'Destination city is required';
     if (formData.fromCity === formData.toCity) 
-      newErrors.toCity = 'To city must be different from From city';
+      newErrors.toCity = 'Destination must be different from origin';
     if (!formData.distance) newErrors.distance = 'Distance is required';
     if (!formData.travelMode) newErrors.travelMode = 'Travel mode is required';
     if (!formData.amount) newErrors.amount = 'Amount is required';
@@ -164,6 +150,20 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
     return <CircularProgress className="loading-spinner" />;
   }
   
+  // Message for when no routes are configured
+  if (userRoutes.length === 0) {
+    return (
+      <Box className="allowance-form">
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Typography variant="subtitle1">No Travel Routes Configured</Typography>
+          <Typography variant="body2">
+            You don't have any travel routes configured in your profile. Please contact your administrator to set up travel routes.
+          </Typography>
+        </Alert>
+      </Box>
+    );
+  }
+  
   return (
     <form onSubmit={handleSubmit} className="allowance-form">
       <Typography variant="h6" className="form-title">
@@ -174,7 +174,7 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
         <Grid item xs={12} md={6}>
           <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker
-              label="Date"
+              label="Travel Date"
               value={formData.date}
               onChange={handleDateChange}
               renderInput={(params) => (
@@ -183,50 +183,69 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
                   fullWidth 
                   required
                   error={!!errors.date}
-                  helperText={errors.date} 
+                  helperText={errors.date}
                   className="form-input"
                 />
               )}
+              className="date-picker"
             />
           </LocalizationProvider>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth required error={!!errors.fromCity} className="form-input">
-            <InputLabel>From City</InputLabel>
+          <FormControl fullWidth className="form-input">
+            <InputLabel>Select Travel Route</InputLabel>
             <Select
-              name="fromCity"
-              value={formData.fromCity}
-              onChange={handleChange}
-              label="From City"
+              value={selectedRoute}
+              onChange={handleRouteChange}
+              label="Select Travel Route"
             >
-              {Array.isArray(cities) && cities.map(city => (
-                <MenuItem key={city.id} value={city.name}>
-                  {city.name}, {city.state}
+              <MenuItem value="">-- Select a route --</MenuItem>
+              {userRoutes.map(route => (
+                <MenuItem 
+                  key={`${route.from_city}|${route.to_city}`}
+                  value={`${route.from_city}|${route.to_city}`}
+                >
+                  {route.from_city} to {route.to_city} ({route.distance} km)
                 </MenuItem>
               ))}
             </Select>
-            {errors.fromCity && <FormHelperText>{errors.fromCity}</FormHelperText>}
+            <FormHelperText>
+              {userRoutes.length === 0 
+                ? "No travel routes found. Please contact your administrator." 
+                : "Select from your approved travel routes"}
+            </FormHelperText>
           </FormControl>
         </Grid>
         
         <Grid item xs={12} md={6}>
-          <FormControl fullWidth required error={!!errors.toCity} className="form-input">
-            <InputLabel>To City</InputLabel>
-            <Select
-              name="toCity"
-              value={formData.toCity}
-              onChange={handleChange}
-              label="To City"
-            >
-              {Array.isArray(cities) && cities.map(city => (
-                <MenuItem key={city.id} value={city.name}>
-                  {city.name}, {city.state}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.toCity && <FormHelperText>{errors.toCity}</FormHelperText>}
-          </FormControl>
+          <TextField
+            label="From City"
+            name="fromCity"
+            value={formData.fromCity}
+            onChange={handleChange}
+            fullWidth
+            required
+            disabled={true} // Locked based on route selection
+            error={!!errors.fromCity}
+            helperText={errors.fromCity}
+            className="form-input"
+          />
+        </Grid>
+        
+        <Grid item xs={12} md={6}>
+          <TextField
+            label="To City"
+            name="toCity"
+            value={formData.toCity}
+            onChange={handleChange}
+            fullWidth
+            required
+            disabled={true} // Locked based on route selection
+            error={!!errors.toCity}
+            helperText={errors.toCity}
+            className="form-input"
+          />
         </Grid>
         
         <Grid item xs={12} md={6}>
@@ -238,9 +257,9 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
             onChange={handleChange}
             fullWidth
             required
+            disabled={true} // Locked based on route selection
             error={!!errors.distance}
-            helperText={errors.distance || (calculatingDistance ? 'Calculating...' : '')}
-            disabled={calculatingDistance}
+            helperText={errors.distance}
             className="form-input"
           />
         </Grid>
@@ -256,7 +275,7 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
             >
               {travelModes.map(mode => (
                 <MenuItem key={mode.value} value={mode.value}>
-                  {mode.label} {mode.rate > 0 ? `($${mode.rate}/km)` : ''}
+                  {mode.label}
                 </MenuItem>
               ))}
             </Select>
@@ -273,9 +292,9 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
             onChange={handleChange}
             fullWidth
             required
+            disabled={true} // Locked based on route selection
             error={!!errors.amount}
-            helperText={errors.amount || (formData.travelMode !== 'OTHER' ? 'Auto-calculated based on distance and mode' : '')}
-            disabled={formData.travelMode !== 'OTHER' && formData.distance && formData.travelMode}
+            helperText={errors.amount}
             InputProps={{
               startAdornment: <span className="currency-symbol">$</span>,
             }}

@@ -2,12 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { 
   Typography, Button, Grid, Box, Paper, Alert, CircularProgress, Tabs, Tab
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { InfoOutlined } from '@mui/icons-material';
 import PageContainer from '../components/layout/PageContainer';
 import AllowanceList from '../components/allowances/AllowanceList';
-import DailyAllowanceForm from '../components/allowances/DailyAllowanceForm';
 import AllowanceDetails from '../components/allowances/AllowanceDetails';
-import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { DailyAllowanceService } from '../services/allowance.service';
 import '../styles/components/allowances.css';
@@ -19,10 +17,7 @@ const DailyAllowance = () => {
   const [selectedAllowance, setSelectedAllowance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [formOpen, setFormOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
-  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
-  const [editMode, setEditMode] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   
   useEffect(() => {
@@ -60,53 +55,9 @@ const DailyAllowance = () => {
     setTabValue(newValue);
   };
   
-  const handleCreateNew = () => {
-    setSelectedAllowance(null);
-    setEditMode(false);
-    setFormOpen(true);
-  };
-  
-  const handleEdit = (allowance) => {
-    setSelectedAllowance(allowance);
-    setEditMode(true);
-    setFormOpen(true);
-  };
-  
   const handleView = (allowance) => {
     setSelectedAllowance(allowance);
     setDetailsOpen(true);
-  };
-  
-  const handleDelete = (allowance) => {
-    setSelectedAllowance(allowance);
-    setDeleteConfirmOpen(true);
-  };
-  
-  const confirmDelete = async () => {
-    try {
-      await DailyAllowanceService.deleteAllowance(selectedAllowance.id);
-      setDeleteConfirmOpen(false);
-      fetchAllowances();
-    } catch (err) {
-      setError('Failed to delete allowance. Please try again later.');
-      console.error('Error deleting allowance:', err);
-    }
-  };
-  
-  const handleFormSubmit = async (formData) => {
-    try {
-      if (editMode) {
-        await DailyAllowanceService.updateAllowance(selectedAllowance.id, formData);
-      } else {
-        await DailyAllowanceService.createAllowance(formData);
-      }
-      
-      setFormOpen(false);
-      fetchAllowances();
-    } catch (err) {
-      setError('Failed to save allowance. Please try again later.');
-      console.error('Error saving allowance:', err);
-    }
   };
   
   const handleApprove = async (id) => {
@@ -160,30 +111,28 @@ const DailyAllowance = () => {
     }
     
     return (
-      <AllowanceList 
-        allowances={allowances} 
-        type="da"
-        onView={handleView}
-        onEdit={handleEdit}
-        onDelete={handleDelete}
-      />
+      <>
+        <Alert severity="info" sx={{ mb: 3 }}>
+          <Box display="flex" alignItems="center">
+            <InfoOutlined sx={{ mr: 1 }} />
+            <Typography>
+              Daily allowances are automatically credited at 5:00 PM every day based on your role.
+            </Typography>
+          </Box>
+        </Alert>
+        
+        <AllowanceList 
+          allowances={allowances} 
+          type="da"
+          onView={handleView}
+          editable={false} // No edit option for daily allowances
+        />
+      </>
     );
   };
   
   return (
-    <PageContainer 
-      title="Daily Allowance" 
-      actions={
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Add />}
-          onClick={handleCreateNew}
-        >
-          New Allowance
-        </Button>
-      }
-    >
+    <PageContainer title="Daily Allowance">
       {isManager() && (
         <Paper sx={{ mb: 3 }}>
           <Tabs
@@ -201,15 +150,6 @@ const DailyAllowance = () => {
       
       {renderContent()}
       
-      {/* Daily Allowance Form Dialog */}
-      <DailyAllowanceForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        initialData={editMode ? selectedAllowance : null}
-        isEditMode={editMode}
-      />
-      
       {/* Daily Allowance Details Dialog */}
       <AllowanceDetails
         open={detailsOpen}
@@ -219,17 +159,6 @@ const DailyAllowance = () => {
         onApprove={handleApprove}
         onReject={handleReject}
         canApprove={isManager() && tabValue === 1}
-      />
-      
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={deleteConfirmOpen}
-        title="Delete Allowance"
-        message="Are you sure you want to delete this allowance? This action cannot be undone."
-        confirmText="Delete"
-        confirmColor="error"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
       />
     </PageContainer>
   );

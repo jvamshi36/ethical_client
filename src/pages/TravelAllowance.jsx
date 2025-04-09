@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Typography, Button, Grid, Box, Paper, Alert, CircularProgress, Tabs, Tab
 } from '@mui/material';
-import { Add } from '@mui/icons-material';
+import { Add, InfoOutlined } from '@mui/icons-material';
 import PageContainer from '../components/layout/PageContainer';
 import AllowanceList from '../components/allowances/AllowanceList';
 import TravelAllowanceForm from '../components/allowances/TravelAllowanceForm';
@@ -16,6 +16,7 @@ const TravelAllowance = () => {
   const { currentUser, isManager } = useAuth();
   const [allowances, setAllowances] = useState([]);
   const [teamAllowances, setTeamAllowances] = useState([]);
+  const [userRoutes, setUserRoutes] = useState([]);
   const [selectedAllowance, setSelectedAllowance] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,6 +28,7 @@ const TravelAllowance = () => {
   
   useEffect(() => {
     fetchAllowances();
+    fetchUserRoutes();
     if (isManager()) {
       fetchTeamAllowances();
     }
@@ -44,6 +46,15 @@ const TravelAllowance = () => {
       console.error('Error fetching travel allowances:', err);
     } finally {
       setLoading(false);
+    }
+  };
+  
+  const fetchUserRoutes = async () => {
+    try {
+      const response = await TravelAllowanceService.getUserTravelRoutes();
+      setUserRoutes(response);
+    } catch (err) {
+      console.error('Error fetching user travel routes:', err);
     }
   };
   
@@ -159,6 +170,23 @@ const TravelAllowance = () => {
       );
     }
     
+    // Check if user has any configured routes
+    if (userRoutes && userRoutes.length === 0) {
+      return (
+        <Alert severity="warning" sx={{ mb: 3 }}>
+          <Box display="flex" alignItems="center">
+            <InfoOutlined sx={{ mr: 1 }} />
+            <Box>
+              <Typography variant="subtitle1">No Travel Routes Configured</Typography>
+              <Typography variant="body2">
+                You don't have any travel routes configured in your profile. Please contact your administrator to set up travel routes.
+              </Typography>
+            </Box>
+          </Box>
+        </Alert>
+      );
+    }
+    
     return (
       <AllowanceList 
         allowances={allowances} 
@@ -179,6 +207,7 @@ const TravelAllowance = () => {
           color="primary"
           startIcon={<Add />}
           onClick={handleCreateNew}
+          disabled={userRoutes && userRoutes.length === 0}
         >
           New Travel
         </Button>
@@ -199,16 +228,40 @@ const TravelAllowance = () => {
         </Paper>
       )}
       
+      {/* Information box about travel allowances */}
+      <Alert severity="info" sx={{ mb: 3 }}>
+        <Box display="flex" alignItems="center">
+          <InfoOutlined sx={{ mr: 1 }} />
+          <Typography>
+            Travel allowances are based on predefined routes in your profile. Allowance amounts are calculated automatically based on the distance.
+          </Typography>
+        </Box>
+      </Alert>
+      
       {renderContent()}
       
       {/* Travel Allowance Form Dialog */}
-      <TravelAllowanceForm
-        open={formOpen}
-        onClose={() => setFormOpen(false)}
-        onSubmit={handleFormSubmit}
-        initialData={editMode ? selectedAllowance : null}
-        isEditMode={editMode}
-      />
+      {formOpen && (
+        <Box>
+          <Paper sx={{ p: 3, mb: 3 }}>
+            <TravelAllowanceForm
+              onSubmit={handleFormSubmit}
+              initialData={editMode ? selectedAllowance : null}
+              isEditMode={editMode}
+            />
+            
+            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button 
+                variant="outlined" 
+                onClick={() => setFormOpen(false)}
+                sx={{ mr: 2 }}
+              >
+                Cancel
+              </Button>
+            </Box>
+          </Paper>
+        </Box>
+      )}
       
       {/* Travel Allowance Details Dialog */}
       <AllowanceDetails

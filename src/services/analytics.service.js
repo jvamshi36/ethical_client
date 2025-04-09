@@ -193,53 +193,6 @@ const AnalyticsService = {
     }
   },
   
-  getDepartmentAnalytics: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-      
-      const response = await api.get(`/analytics/department?${queryParams.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching department analytics:', error);
-      return {};
-    }
-  },
-  
-  getHeadquartersAnalytics: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      if (params.startDate) queryParams.append('startDate', params.startDate);
-      if (params.endDate) queryParams.append('endDate', params.endDate);
-      
-      const response = await api.get(`/analytics/headquarters?${queryParams.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching headquarters analytics:', error);
-      return {};
-    }
-  },
-  
-  getMonthlyReports: async (params = {}) => {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      if (params.year) queryParams.append('year', params.year);
-      if (params.month) queryParams.append('month', params.month);
-      if (params.headquarters) queryParams.append('headquarters', params.headquarters);
-      if (params.department) queryParams.append('department', params.department);
-      
-      const response = await api.get(`/analytics/monthly?${queryParams.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching monthly reports:', error);
-      return {};
-    }
-  },
-  
   exportData: async (params = {}) => {
     try {
       const queryParams = new URLSearchParams();
