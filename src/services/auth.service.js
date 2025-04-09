@@ -42,7 +42,7 @@ const TokenService = {
 
 // Create axios instance with auth header
 const instance = axios.create({
-  baseURL: API_URL,
+  baseURL: 'http://localhost:5000/api',
   headers: {
     'Content-Type': 'application/json'
   }

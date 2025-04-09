@@ -1,21 +1,54 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   TextField, Button, Grid, FormControl, 
-  InputLabel, Select, MenuItem, Typography 
+  InputLabel, Select, MenuItem, Typography, 
+  Box, Alert, CircularProgress 
 } from '@mui/material';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { api } from '../../services/auth.service';
 import '../../styles/components/allowances.css';
 
 const DailyAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
   const [formData, setFormData] = useState(initialData || {
     date: new Date(),
-    amount: '',
     remarks: ''
   });
   
   const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+  const [roleAmount, setRoleAmount] = useState(0);
+  const [amountLoading, setAmountLoading] = useState(true);
+  const [amountError, setAmountError] = useState('');
+  
+  // Fetch the role-based daily allowance amount when component mounts
+  useEffect(() => {
+    fetchRoleAllowance();
+  }, []);
+  
+  const fetchRoleAllowance = async () => {
+    setAmountLoading(true);
+    setAmountError('');
+    
+    try {
+      const response = await api.get('/role-allowances/my-allowance');
+      setRoleAmount(response.data.amount);
+      
+      // If editing, keep the existing amount
+      if (!isEditMode) {
+        setFormData(prev => ({
+          ...prev,
+          amount: response.data.amount
+        }));
+      }
+    } catch (error) {
+      console.error('Error fetching role allowance:', error);
+      setAmountError('Failed to fetch allowance amount for your role. Please contact an administrator.');
+    } finally {
+      setAmountLoading(false);
+    }
+  };
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -30,9 +63,7 @@ const DailyAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }
     const newErrors = {};
     
     if (!formData.date) newErrors.date = 'Date is required';
-    if (!formData.amount) newErrors.amount = 'Amount is required';
-    else if (isNaN(formData.amount) || parseFloat(formData.amount) <= 0)
-      newErrors.amount = 'Amount must be a positive number';
+    // No validation for amount as it's fixed by role
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -44,16 +75,31 @@ const DailyAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }
     if (validate()) {
       onSubmit({
         ...formData,
-        amount: parseFloat(formData.amount)
+        // Ensure the amount is the fixed role-based amount
+        amount: roleAmount
       });
     }
   };
+  
+  if (amountLoading) {
+    return (
+      <Box display="flex" justifyContent="center" padding={4}>
+        <CircularProgress />
+      </Box>
+    );
+  }
   
   return (
     <form onSubmit={handleSubmit} className="allowance-form">
       <Typography variant="h6" className="form-title">
         {isEditMode ? 'Edit Daily Allowance' : 'New Daily Allowance'}
       </Typography>
+      
+      {amountError && (
+        <Alert severity="error" sx={{ mb: 3 }}>
+          {amountError}
+        </Alert>
+      )}
       
       <Grid container spacing={3}>
         <Grid item xs={12} md={6}>
@@ -72,6 +118,7 @@ const DailyAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }
                   className="form-input"
                 />
               )}
+              className="date-picker"
             />
           </LocalizationProvider>
         </Grid>
@@ -81,15 +128,15 @@ const DailyAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }
             label="Amount"
             name="amount"
             type="number"
-            value={formData.amount}
-            onChange={handleChange}
+            value={roleAmount}
+            disabled={true} // Amount is fixed and cannot be edited
             fullWidth
             required
-            error={!!errors.amount}
-            helperText={errors.amount}
             InputProps={{
+              readOnly: true,
               startAdornment: <span className="currency-symbol">$</span>,
             }}
+            helperText="Fixed amount based on your role"
             className="form-input"
           />
         </Grid>
