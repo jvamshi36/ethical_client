@@ -12,6 +12,7 @@ import {
 } from '@mui/icons-material';
 import UserForm from '../../components/admin/UserForm';
 import TeamManagement from '../../components/admin/TeamManagement';
+import AllowanceHistory from '../../components/admin/AllowanceHistory'; // Import the AllowanceHistory component
 import UserTravelRoutesAdmin from '../../components/admin/UserTravelRoutesAdmin';
 import { api } from '../../services/auth.service';
 import UserService from '../../services/user.service';
@@ -232,19 +233,7 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
           )}
           
           {tabValue === 2 && (
-            <Box sx={{ p: 3, textAlign: 'center' }}>
-              <Typography variant="h6" color="textSecondary">Allowance History</Typography>
-              <Typography variant="body1" color="textSecondary" sx={{ mt: 2 }}>
-                View the history of daily and travel allowances for this user.
-              </Typography>
-              <Button 
-                variant="contained" 
-                sx={{ mt: 3 }}
-                disabled={true}
-              >
-                Coming Soon
-              </Button>
-            </Box>
+            <AllowanceHistory userId={user.id} />
           )}
         </Box>
       </Paper>

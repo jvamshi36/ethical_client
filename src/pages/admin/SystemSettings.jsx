@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/icons-material';
 import { api } from '../../services/auth.service';
+import CityManagement from '../../components/admin/CityManagement';
 import RoleAllowanceAdmin from '../../pages/admin/RoleAllowanceAdmin';
 
 // TabPanel component for tab content
@@ -262,6 +263,7 @@ const SystemSettings = () => {
           <Tab label="Departments" />
           <Tab label="Headquarters" />
           <Tab label="Role Allowances" />
+          <Tab label="Cities" />
         </Tabs>
         
         {/* Departments Tab */}
@@ -391,6 +393,11 @@ const SystemSettings = () => {
         {/* Role Allowances Tab */}
         <TabPanel value={tabValue} index={2}>
           <RoleAllowanceAdmin />
+        </TabPanel>
+
+        {/* Cities Tab */}
+        <TabPanel value={tabValue} index={3}>
+          <CityManagement />
         </TabPanel>
       </Paper>
       

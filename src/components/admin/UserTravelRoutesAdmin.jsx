@@ -36,7 +36,14 @@ const UserTravelRoutesAdmin = ({ userId, username }) => {
     setLoading(true);
     try {
       const response = await api.get(`/travel-routes/user/${userId}`);
-      setRoutes(Array.isArray(response.data) ? response.data : []);
+      const routesData = Array.isArray(response.data) ? response.data : [];
+      // Ensure amount and distance are parsed as numbers
+      const parsedRoutes = routesData.map(route => ({
+        ...route,
+        amount: parseFloat(route.amount) || 0,
+        distance: parseFloat(route.distance) || 0
+      }));
+      setRoutes(parsedRoutes);
     } catch (error) {
       setError('Failed to fetch travel routes');
       console.error('Error fetching travel routes:', error);
