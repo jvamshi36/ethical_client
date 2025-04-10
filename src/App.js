@@ -21,6 +21,8 @@ import Analytics from './pages/Analytics';
 import Profile from './pages/Profile';
 import UserManagement from './pages/admin/UserManagement';
 import SystemSettings from './pages/admin/SystemSettings';
+import AdminDailyAllowance from './pages/admin/AdminDailyAllowance';
+import AdminTravelAllowance from './pages/admin/AdminTravelAllowance';
 import './styles/global.css';
 
 // Theme configuration for futuristic UI (you can customize in styles)
@@ -71,6 +73,17 @@ function App() {
                             <SystemSettings />
                           </RoleRoute>
                         } />
+
+<Route path="/admin/daily-allowances" element={
+    <RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
+      <AdminDailyAllowance />
+    </RoleRoute>
+  } />
+  <Route path="/admin/travel-allowances" element={
+    <RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
+      <AdminTravelAllowance />
+    </RoleRoute>
+  } />
                         
                         {/* Fallback route */}
                         <Route path="*" element={<Navigate to="/" replace />} />

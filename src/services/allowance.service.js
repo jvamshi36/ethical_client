@@ -1,20 +1,26 @@
-// src/services/allowance.service.js
+// Update the DailyAllowanceService object
 import { api } from './auth.service';
-
-// Daily Allowance Service
 const DailyAllowanceService = {
   getUserAllowances: async () => {
     const response = await api.get('/da');
     return response.data;
   },
   
-  getTeamAllowances: async () => {
-    const response = await api.get('/da/team');
+  // Admin method to get all allowances
+  getAllAllowances: async () => {
+    const response = await api.get('/da/admin/all');
     return response.data;
   },
   
-  getUserAllowancesByUserId: async (userId) => {
-    const response = await api.get(`/da/user/${userId}`);
+  getUserAllowancesByUserId: async (userId, dateParams) => {
+    let url = `/da/user/${userId}`;
+    
+    // Add date params if provided
+    if (dateParams && dateParams.startDate && dateParams.endDate) {
+      url += `?startDate=${dateParams.startDate}&endDate=${dateParams.endDate}`;
+    }
+    
+    const response = await api.get(url);
     return response.data;
   },
   
@@ -44,20 +50,29 @@ const DailyAllowanceService = {
   }
 };
 
-// Travel Allowance Service
+// Update the TravelAllowanceService object
+
 const TravelAllowanceService = {
   getUserAllowances: async () => {
     const response = await api.get('/ta');
     return response.data;
   },
   
-  getTeamAllowances: async () => {
-    const response = await api.get('/ta/team');
+  // Admin method to get all allowances
+  getAllAllowances: async () => {
+    const response = await api.get('/ta/admin/all');
     return response.data;
   },
   
-  getUserAllowancesByUserId: async (userId) => {
-    const response = await api.get(`/ta/user/${userId}`);
+  getUserAllowancesByUserId: async (userId, dateParams) => {
+    let url = `/ta/user/${userId}`;
+    
+    // Add date params if provided
+    if (dateParams && dateParams.startDate && dateParams.endDate) {
+      url += `?startDate=${dateParams.startDate}&endDate=${dateParams.endDate}`;
+    }
+    
+    const response = await api.get(url);
     return response.data;
   },
   
@@ -67,7 +82,7 @@ const TravelAllowanceService = {
   },
   
   getUserTravelRoutes: async () => {
-    const response = await api.get('/travel-routes/my-routes');
+    const response = await api.get('/ta/routes');
     return response.data;
   },
   
@@ -84,40 +99,14 @@ const TravelAllowanceService = {
   },
   
   createAllowance: async (allowanceData) => {
-    // First validate the route
-    try {
-      await TravelAllowanceService.validateRoute(
-        allowanceData.fromCity, 
-        allowanceData.toCity
-      );
-      
-      // Then create the allowance
-      const response = await api.post('/ta', allowanceData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    // Then create the allowance
+    const response = await api.post('/ta', allowanceData);
+    return response.data;
   },
   
   updateAllowance: async (id, allowanceData) => {
-    try {
-      // First validate the route if it changed
-      const currentAllowance = await TravelAllowanceService.getAllowanceById(id);
-      
-      if (currentAllowance.fromCity !== allowanceData.fromCity || 
-          currentAllowance.toCity !== allowanceData.toCity) {
-        await TravelAllowanceService.validateRoute(
-          allowanceData.fromCity, 
-          allowanceData.toCity
-        );
-      }
-      
-      // Then update the allowance
-      const response = await api.put(`/ta/${id}`, allowanceData);
-      return response.data;
-    } catch (error) {
-      throw error;
-    }
+    const response = await api.put(`/ta/${id}`, allowanceData);
+    return response.data;
   },
   
   deleteAllowance: async (id) => {
@@ -141,5 +130,4 @@ const TravelAllowanceService = {
     }
   }
 };
-
 export { DailyAllowanceService, TravelAllowanceService };

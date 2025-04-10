@@ -25,25 +25,25 @@ const Sidebar = ({ open }) => {
       text: 'Dashboard',
       icon: <Dashboard className="menu-icon" />,
       path: '/',
-      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
+      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM']
     },
     {
       text: 'Daily Allowance',
       icon: <AttachMoney className="menu-icon" />,
       path: '/daily-allowance',
-      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
+      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM']
     },
     {
       text: 'Travel Allowance',
       icon: <CardTravel className="menu-icon" />,
       path: '/travel-allowance',
-      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
+      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM']
     },
     {
       text: 'Analytics',
       icon: <InsightsOutlined className="menu-icon" />,
       path: '/analytics',
-      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM', 'ADMIN', 'SUPER_ADMIN']
+      roles: ['BE', 'BM', 'SBM', 'ABM', 'RBM', 'ZBM', 'DGM']
     },
     {
       text: 'Profile',
@@ -64,6 +64,18 @@ const Sidebar = ({ open }) => {
       text: 'System Settings',
       icon: <Settings className="menu-icon" />,
       path: '/admin/settings',
+      roles: ['ADMIN', 'SUPER_ADMIN']
+    },
+    {
+      text: 'Daily Allowances',
+      icon: <AttachMoney className="menu-icon" />,
+      path: '/admin/daily-allowances',
+      roles: ['ADMIN', 'SUPER_ADMIN']
+    },
+    {
+      text: 'Travel Allowances',
+      icon: <CardTravel className="menu-icon" />,
+      path: '/admin/travel-allowances',
       roles: ['ADMIN', 'SUPER_ADMIN']
     }
   ];
