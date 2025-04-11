@@ -7,6 +7,7 @@ import {
 } from '@mui/material';
 import { Add, Edit, Delete, Close } from '@mui/icons-material';
 import { api } from '../../services/auth.service';
+import '../../styles/pages/city-management.css';
 import '../../styles/components/admin.css';
 
 const CityManagement = () => {
@@ -142,46 +143,55 @@ const CityManagement = () => {
   };
   
   return (
-    <Paper sx={{ p: 3, mb: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          Cities Management
-        </Typography>
+    <div className="city-management-container">
+      <div className="section-header">
+        <div className="section-title">Cities Management</div>
         <Button 
           variant="contained" 
           startIcon={<Add />}
           onClick={handleAddCity}
+          className="action-button primary-button"
         >
           Add City
         </Button>
-      </Box>
+      </div>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError('')}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ mb: 2 }} 
+          onClose={() => setError('')}
+          className="error-container"
+        >
+          <div className="error-message">{error}</div>
         </Alert>
       )}
       
       {success && (
-        <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccess('')}>
+        <Alert 
+          severity="success" 
+          sx={{ mb: 2 }} 
+          onClose={() => setSuccess('')}
+        >
           {success}
         </Alert>
       )}
       
       {loading ? (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="200px">
-          <CircularProgress />
-        </Box>
+        <div className="loading-container">
+          <CircularProgress className="loading-spinner" />
+          <div>Loading cities...</div>
+        </div>
       ) : (
-        <TableContainer>
-          <Table>
+        <TableContainer className="city-table-container">
+          <Table className="city-table">
             <TableHead>
               <TableRow>
-                <TableCell>Name</TableCell>
-                <TableCell>State</TableCell>
-                <TableCell>Headquarters</TableCell>
-                <TableCell align="center">Status</TableCell>
-                <TableCell align="right">Actions</TableCell>
+                <TableCell className="table-header">Name</TableCell>
+                <TableCell className="table-header">State</TableCell>
+                <TableCell className="table-header">Headquarters</TableCell>
+                <TableCell align="center" className="table-header">Status</TableCell>
+                <TableCell align="right" className="table-header">Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -193,32 +203,34 @@ const CityManagement = () => {
                 </TableRow>
               ) : (
                 cities.map((city) => (
-                  <TableRow key={city.id}>
-                    <TableCell>{city.name}</TableCell>
+                  <TableRow key={city.id} className="city-row">
+                    <TableCell className="city-name">{city.name}</TableCell>
                     <TableCell>{city.state}</TableCell>
                     <TableCell>{city.headquarters}</TableCell>
                     <TableCell align="center">
-                      <Chip 
-                        label={city.is_active ? 'Active' : 'Inactive'} 
-                        color={city.is_active ? 'success' : 'default'}
-                        size="small"
-                      />
+                      <div className={`status-badge status-${city.is_active ? 'active' : 'inactive'}`}>
+                        {city.is_active ? 'Active' : 'Inactive'}
+                      </div>
                     </TableCell>
                     <TableCell align="right">
-                      <IconButton 
-                        size="small" 
-                        color="primary"
-                        onClick={() => handleEditCity(city)}
-                      >
-                        <Edit fontSize="small" />
-                      </IconButton>
-                      <IconButton 
-                        size="small" 
-                        color="error"
-                        onClick={() => handleDeleteCity(city.id)}
-                      >
-                        <Delete fontSize="small" />
-                      </IconButton>
+                      <div className="action-buttons">
+                        <IconButton 
+                          size="small" 
+                          color="primary"
+                          onClick={() => handleEditCity(city)}
+                          className="action-button secondary-button"
+                        >
+                          <Edit fontSize="small" />
+                        </IconButton>
+                        <IconButton 
+                          size="small" 
+                          color="error"
+                          onClick={() => handleDeleteCity(city.id)}
+                          className="action-button secondary-button"
+                        >
+                          <Delete fontSize="small" />
+                        </IconButton>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))
@@ -234,84 +246,102 @@ const CityManagement = () => {
         onClose={handleCloseDialog}
         maxWidth="sm"
         fullWidth
+        classes={{ paper: 'city-dialog' }}
       >
-        <DialogTitle>
+        <DialogTitle className="dialog-title">
           {isEditMode ? 'Edit City' : 'Add City'}
           <IconButton
             aria-label="close"
             onClick={handleCloseDialog}
             sx={{ position: 'absolute', right: 8, top: 8 }}
+            className="close-button"
           >
             <Close />
           </IconButton>
         </DialogTitle>
         
-        <DialogContent dividers>
-          <Box sx={{ p: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              label="City Name"
-              name="name"
-              value={cityData.name}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
+        <DialogContent dividers className="dialog-content">
+          <div className="form-container">
+            <div className="form-group">
+              <label className="form-label">City Name</label>
+              <TextField
+                name="name"
+                value={cityData.name}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                className="form-input"
+              />
+            </div>
             
-            <TextField
-              label="State"
-              name="state"
-              value={cityData.state}
-              onChange={handleInputChange}
-              fullWidth
-              required
-            />
+            <div className="form-group">
+              <label className="form-label">State</label>
+              <TextField
+                name="state"
+                value={cityData.state}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                className="form-input"
+              />
+            </div>
             
-            <TextField
-              select
-              label="Headquarters"
-              name="headquarters"
-              value={cityData.headquarters}
-              onChange={handleInputChange}
-              fullWidth
-              required
-              SelectProps={{
-                native: true,
-              }}
-            >
-              <option value="">Select Headquarters</option>
-              {headquarters.map((hq) => (
-                <option key={hq.id} value={hq.name}>
-                  {hq.name}
-                </option>
-              ))}
-            </TextField>
+            <div className="form-group">
+              <label className="form-label">Headquarters</label>
+              <TextField
+                select
+                name="headquarters"
+                value={cityData.headquarters}
+                onChange={handleInputChange}
+                fullWidth
+                required
+                className="form-select"
+                SelectProps={{
+                  native: true,
+                }}
+              >
+                <option value="">Select Headquarters</option>
+                {headquarters.map((hq) => (
+                  <option key={hq.id} value={hq.name}>
+                    {hq.name}
+                  </option>
+                ))}
+              </TextField>
+            </div>
             
             {isEditMode && (
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Typography variant="body2">Status:</Typography>
-                <Chip 
-                  label={cityData.isActive ? 'Active' : 'Inactive'} 
-                  color={cityData.isActive ? 'success' : 'default'}
+              <div className="form-group">
+                <label className="form-label">Status</label>
+                <div 
+                  className={`status-toggle ${cityData.isActive ? 'active' : 'inactive'}`}
                   onClick={() => setCityData({...cityData, isActive: !cityData.isActive})}
-                  clickable
-                />
-              </Box>
+                >
+                  <div className="toggle-slider"></div>
+                  <span>{cityData.isActive ? 'Active' : 'Inactive'}</span>
+                </div>
+              </div>
             )}
-          </Box>
+          </div>
         </DialogContent>
         
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
+        <DialogActions className="dialog-actions">
+          <Button 
+            onClick={handleCloseDialog}
+            className="action-button secondary-button"
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={handleSaveCity} 
             variant="contained"
             color="primary"
+            className="action-button primary-button"
           >
             {isEditMode ? 'Update' : 'Save'}
           </Button>
         </DialogActions>
       </Dialog>
-    </Paper>
+    </div>
   );
 };
 

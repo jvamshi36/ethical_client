@@ -93,6 +93,13 @@ instance.interceptors.response.use(
           return Promise.reject(_error);
         }
       }
+      
+      // Handle rate limiting (429 Too Many Requests)
+      if (error.response.status === 429) {
+        console.warn('Rate limit exceeded. Too many requests.');
+        // Add a more descriptive error message
+        error.message = 'Too many requests. Please wait a moment before trying again.';
+      }
     }
     
     return Promise.reject(error);

@@ -1,0 +1,325 @@
+/* src/styles/pages/system-settings.css */
+
+/* Page Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Page Layout */
+  .settings-container {
+    animation: fadeIn 0.5s ease-out;
+    padding: 24px;
+    max-width: 1440px;
+    margin: 0 auto;
+  }
+  
+  .settings-header {
+    margin-bottom: 32px;
+    animation: slideInLeft 0.5s ease-out;
+  }
+  
+  .settings-title {
+    font-size: 1.8rem;
+    font-weight: 700;
+    margin-bottom: 8px;
+    color: #333;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .settings-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 50px;
+    height: 4px;
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+    border-radius: 2px;
+  }
+  
+  /* Settings Navigation */
+  .settings-nav {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 0;
+    padding: 16px 24px;
+    overflow-x: auto;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .nav-item {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    white-space: nowrap;
+    color: #666;
+  }
+  
+  .nav-item.active {
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+    color: white;
+  }
+  
+  .nav-item:not(.active):hover {
+    background: #f5f7fa;
+  }
+  
+  /* Section Header */
+  .section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    animation: slideInLeft 0.5s ease-out;
+  }
+  
+  .section-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+  }
+  
+  /* Settings Sections */
+  .settings-section {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    animation: slideInUp 0.5s ease-out;
+  }
+  
+  .settings-section:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Settings Grid */
+  .settings-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    animation: slideInUp 0.5s ease-out;
+  }
+  
+  .setting-card {
+    background: #f8f9fa;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .setting-card:hover {
+    background-color: #f0f2f5;
+  }
+  
+  .setting-header {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .setting-name {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  /* Table Styles */
+  .table-header {
+    background-color: #f5f7fa;
+    font-weight: 600;
+    color: #333;
+    border-bottom: 2px solid #e0e0e0;
+  }
+  
+  /* Form Elements */
+  .form-group {
+    margin-bottom: 20px;
+  }
+  
+  .form-label {
+    display: block;
+    margin-bottom: 8px;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .form-input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    transition: border-color 0.3s ease;
+  }
+  
+  .form-input:focus {
+    border-color: #2196f3;
+    outline: none;
+  }
+  
+  .form-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    background-color: white;
+    cursor: pointer;
+  }
+  
+  .form-textarea {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    min-height: 100px;
+    resize: vertical;
+  }
+  
+  /* Toggle Switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 50px;
+    height: 24px;
+  }
+  
+  .toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #ccc;
+    transition: .4s;
+    border-radius: 24px;
+  }
+  
+  .toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 16px;
+    width: 16px;
+    left: 4px;
+    bottom: 4px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+  }
+  
+  input:checked + .toggle-slider {
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+  }
+  
+  input:checked + .toggle-slider:before {
+    transform: translateX(26px);
+  }
+  
+  /* Action Buttons */
+  .action-button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    min-height: 36px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  .primary-button {
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+    color: white !important;
+    border: none;
+  }
+  
+  .primary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  }
+  
+  .secondary-button {
+    background: #f5f7fa;
+    color: #666;
+    border: 1px solid #e0e0e0;
+  }
+  
+  .secondary-button:hover {
+    background: #e9ecef;
+  }
+  
+  /* Loading and Error States */
+  .loading-container {
+    padding: 48px;
+    text-align: center;
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  .loading-spinner {
+    margin-bottom: 16px;
+    color: #2196f3;
+  }
+  
+  .error-message {
+    color: #e53935;
+    margin-bottom: 16px;
+  }
+  
+  /* Dialog Styles */
+  .MuiDialog-paper.settings-section {
+    animation: slideInUp 0.3s ease-out;
+    border-radius: 16px;
+    overflow: hidden;
+  }
+  
+  /* Responsive styles */
+  @media (max-width: 768px) {
+    .settings-nav {
+      padding: 12px;
+    }
+    
+    .nav-item {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+    }
+    
+    .section-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 16px;
+    }
+  }

@@ -14,6 +14,7 @@ import RoleRoute from './components/auth/RoleRoute';
 
 // Pages
 import Login from './pages/Login';
+import AdminDashboard from './pages/admin/AdminDashboard';
 import Dashboard from './pages/Dashboard';
 import DailyAllowance from './pages/DailyAllowance';
 import TravelAllowance from './pages/TravelAllowance';
@@ -63,6 +64,11 @@ function App() {
                         <Route path="/profile" element={<Profile />} />
                         
                         {/* Admin routes */}
+                        <Route path="/admin/dashboard" element={
+  <RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
+    <AdminDashboard />
+  </RoleRoute>
+} />
                         <Route path="/admin/users" element={
                           <RoleRoute allowedRoles={['ADMIN', 'SUPER_ADMIN']}>
                             <UserManagement />

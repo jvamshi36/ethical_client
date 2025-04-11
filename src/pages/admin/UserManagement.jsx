@@ -1,11 +1,11 @@
-// src/pages/admin/UserManagement.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  Typography, Button, Box, Paper, Alert, CircularProgress,
-  TextField, InputAdornment, IconButton
+  Typography, Button, Box, Paper, Alert, CircularProgress, 
+  TextField, InputAdornment, IconButton, Collapse,
+  Dialog, DialogTitle, DialogContent, DialogActions
 } from '@mui/material';
 import { 
-  Add, Search, FilterList
+  Add, Search, FilterList, Close
 } from '@mui/icons-material';
 import PageContainer from '../../components/layout/PageContainer';
 import DataTable from '../../components/common/DataTable';
@@ -15,6 +15,7 @@ import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { useAuth } from '../../contexts/AuthContext';
 import UserService from '../../services/user.service';
 import { ROLE_DISPLAY_NAMES } from '../../constants/roles';
+import '../../styles/pages/user-management.css';
 import '../../styles/components/admin.css';
 
 const UserManagement = () => {
@@ -37,6 +38,10 @@ const UserManagement = () => {
   const [searchText, setSearchText] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  
+  // Create a ref for the UserForm component
+  const formRef = useRef(null);
   
   useEffect(() => {
     fetchUsers();
@@ -118,7 +123,27 @@ const UserManagement = () => {
     }
   };
   
+  const handleFormClose = () => {
+    setFormOpen(false);
+  };
+  
+  const handleSubmitForm = () => {
+    // Check if the formRef exists and has a submitForm method
+    if (formRef.current && typeof formRef.current.submitForm === 'function') {
+      formRef.current.submitForm();
+    } else {
+      console.error('Form ref or submitForm method not available');
+    }
+  };
+  
   const handleSearch = () => {
+    fetchUsers();
+  };
+
+  const handleResetFilters = () => {
+    setSearchText('');
+    setRoleFilter('');
+    setStatusFilter('all');
     fetchUsers();
   };
   
@@ -127,7 +152,7 @@ const UserManagement = () => {
     { 
       id: 'fullName', 
       label: 'Name',
-      render: (value, row) => `${value} (${row.username})`
+      render: (value, row) => `${value || 'undefined'} (${row.username})`
     },
     { id: 'email', label: 'Email' },
     { 
@@ -140,35 +165,45 @@ const UserManagement = () => {
     {
       id: 'isActive',
       label: 'Status',
-      render: (value) => value ? 'Active' : 'Inactive'
+      render: (value) => {
+        // Convert value to boolean to ensure proper rendering
+        const isActiveBoolean = value === true || value === 'true' || value === 't';
+        return (
+          <span className={`user-status ${isActiveBoolean ? 'status-active' : 'status-inactive'}`}>
+            {isActiveBoolean ? 'Active' : 'Inactive'}
+          </span>
+        );
+      }
     },
     {
       id: 'actions',
       label: 'Actions',
       render: (_, row) => (
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <Box className="action-buttons">
           <Button 
+            className="view-details-button"
             size="small" 
             variant="outlined" 
             onClick={() => handleViewUserDetails(row)}
           >
-            View Details
+            VIEW DETAILS
           </Button>
           <Button 
+            className="edit-button"
             size="small" 
             variant="outlined" 
             onClick={() => handleEditUser(row)}
           >
-            Edit
+            EDIT
           </Button>
           <Button 
+            className="delete-button"
             size="small" 
             variant="outlined" 
-            color="error"
             onClick={() => handleDeleteUser(row)}
             disabled={row.id === currentUser?.id}
           >
-            Delete
+            DELETE
           </Button>
         </Box>
       )
@@ -187,22 +222,34 @@ const UserManagement = () => {
   }
   
   return (
-    <PageContainer 
-      title="User Management"
-      actions={
+    <div className="user-management-container">
+      <div className="user-management-header">
+        <h1 className="user-management-title">User Management</h1>
+        
         <Button
+          className="action-button primary-button"
           variant="contained"
-          color="primary"
           startIcon={<Add />}
           onClick={handleCreateUser}
         >
-          Add User
+          ADD USER
         </Button>
-      }
-    >
+      </div>
+      
+      <Box sx={{ display: 'flex', justifyContent: 'flex-start', mb: 3 }}>
+        <Button
+          variant="outlined"
+          startIcon={<FilterList />}
+          onClick={() => setFiltersOpen(!filtersOpen)}
+          className="filter-toggle-button"
+        >
+          {filtersOpen ? 'Hide Filters' : 'Show Filters'}
+        </Button>
+      </Box>
+
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-          {error}
+        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')} className="error-container">
+          <div className="error-message">{error}</div>
         </Alert>
       )}
       
@@ -212,104 +259,165 @@ const UserManagement = () => {
         </Alert>
       )}
       
-      {/* Search and filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-          <TextField
-            label="Search"
-            value={searchText}
-            onChange={(e) => setSearchText(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <Search />
-                </InputAdornment>
-              ),
-            }}
-            size="small"
-            sx={{ flexGrow: 1, minWidth: 200 }}
-          />
+      {/* User Stats Section */}
+      <div className="user-stats">
+        <div className="stat-card">
+          <div className="stat-label">Total Users</div>
+          <div className="stat-value">{users.length}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Active Users</div>
+          <div className="stat-value">{users.filter(user => user.isActive).length}</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-label">Inactive Users</div>
+          <div className="stat-value">{users.filter(user => !user.isActive).length}</div>
+        </div>
+      </div>
+      
+      {/* Filters Section */}
+      <Collapse in={filtersOpen}>
+        <Paper className="filter-section">
+          <div className="filter-grid">
+            <TextField
+              label="Search"
+              value={searchText}
+              onChange={(e) => setSearchText(e.target.value)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <Search />
+                  </InputAdornment>
+                ),
+              }}
+              className="form-group"
+              size="small"
+              fullWidth
+            />
+            
+            <TextField
+              select
+              label="Role"
+              value={roleFilter}
+              onChange={(e) => setRoleFilter(e.target.value)}
+              SelectProps={{
+                native: true,
+              }}
+              className="form-group"
+              size="small"
+              fullWidth
+            >
+              <option value="">All Roles</option>
+              {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
+                <option key={value} value={value}>{label}</option>
+              ))}
+            </TextField>
+            
+            <TextField
+              select
+              label="Status"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+              SelectProps={{
+                native: true,
+              }}
+              className="form-group"
+              size="small"
+              fullWidth
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active</option>
+              <option value="inactive">Inactive</option>
+            </TextField>
+          </div>
           
-          <TextField
-            select
-            label="Role"
-            value={roleFilter}
-            onChange={(e) => setRoleFilter(e.target.value)}
-            SelectProps={{
-              native: true,
-            }}
-            size="small"
-            sx={{ minWidth: 150 }}
-          >
-            <option value="">All Roles</option>
-            {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
-              <option key={value} value={value}>{label}</option>
-            ))}
-          </TextField>
-          
-          <TextField
-            select
-            label="Status"
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            SelectProps={{
-              native: true,
-            }}
-            size="small"
-            sx={{ minWidth: 120 }}
-          >
-            <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </TextField>
-          
-          <Button 
-            variant="contained" 
-            startIcon={<FilterList />}
-            onClick={handleSearch}
-          >
-            Filter
-          </Button>
-        </Box>
-      </Paper>
+          <div className="filter-actions">
+            <Button 
+              className="action-button secondary-button"
+              variant="outlined"
+              onClick={handleResetFilters}
+            >
+              Reset
+            </Button>
+            <Button 
+              className="action-button primary-button"
+              variant="contained" 
+              onClick={handleSearch}
+            >
+              Apply Filters
+            </Button>
+          </div>
+        </Paper>
+      </Collapse>
       
       {/* Users Table */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-          <CircularProgress />
-        </Box>
+        <div className="loading-container">
+          <CircularProgress className="loading-spinner" />
+        </div>
       ) : (
-        <Paper>
-          <DataTable
-            columns={columns}
-            data={users}
-            loading={loading}
-          />
-        </Paper>
+        <div className="user-table-container">
+          <table className="user-table">
+            <thead>
+              <tr>
+                {columns.map((column) => (
+                  <th key={column.id}>{column.label}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((row, rowIndex) => (
+                <tr key={row.id || rowIndex}>
+                  {columns.map((column) => (
+                    <td key={column.id}>
+                      {column.render 
+                        ? column.render(row[column.id], row) 
+                        : row[column.id] || '-'}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
       
-      {/* User Form Dialog */}
-      {formOpen && (
-        <Paper sx={{ p: 3, mt: 3 }}>
-          <Typography variant="h6" gutterBottom>
+      {/* User Form Modal Dialog */}
+      <Dialog 
+        open={formOpen} 
+        onClose={handleFormClose}
+        maxWidth="md"
+        fullWidth
+        className="form-dialog"
+      >
+        <DialogTitle className="form-dialog-title">
+          <Typography variant="h6">
             {editMode ? 'Edit User' : 'Add New User'}
           </Typography>
+          <IconButton
+            aria-label="close"
+            onClick={handleFormClose}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'white'
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
           <UserForm
+            ref={formRef}
             initialData={selectedUser}
             isEditMode={editMode}
             onSubmit={handleUserFormSubmit}
           />
-          <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-            <Button 
-              variant="outlined" 
-              onClick={() => setFormOpen(false)}
-              sx={{ mr: 2 }}
-            >
-              Cancel
-            </Button>
-          </Box>
-        </Paper>
-      )}
+        </DialogContent>
+        <DialogActions sx={{ padding: '16px 24px' }}>
+        </DialogActions>
+      </Dialog>
       
       {/* Confirm Delete Dialog */}
       <ConfirmDialog
@@ -320,8 +428,9 @@ const UserManagement = () => {
         confirmColor="error"
         onConfirm={confirmDelete}
         onCancel={() => setDeleteConfirmOpen(false)}
+        className="dialog-container"
       />
-    </PageContainer>
+    </div>
   );
 };
 

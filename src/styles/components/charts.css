@@ -1,0 +1,378 @@
+/* src/styles/components/charts.css */
+
+/* Chart animations */
+@keyframes growUp {
+    from {
+      height: 0;
+      opacity: 0;
+    }
+    to {
+      height: 100%;
+      opacity: 1;
+    }
+  }
+  
+  @keyframes drawLine {
+    from {
+      stroke-dashoffset: 1000;
+    }
+    to {
+      stroke-dashoffset: 0;
+    }
+  }
+  
+  @keyframes rotatePie {
+    from {
+      transform: rotate(-90deg);
+      opacity: 0;
+    }
+    to {
+      transform: rotate(0);
+      opacity: 1;
+    }
+  }
+  
+  /* Chart Container Styling */
+  .chart-wrapper {
+    position: relative;
+    margin-bottom: 24px;
+    border-radius: 16px;
+    background-color: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    padding: 24px;
+    animation: fadeIn 0.5s ease-out;
+    transition: all 0.3s ease;
+    height: 100%;
+  }
+  
+  .chart-wrapper:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  .chart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 16px;
+  }
+  
+  .chart-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #333;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .chart-icon {
+    color: #666;
+  }
+  
+  .chart-actions {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .chart-container {
+    width: 100%;
+    height: 300px;
+    animation: fadeIn 0.8s ease-out;
+  }
+  
+  /* Chart Elements Styling */
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: rgba(0, 0, 0, 0.05);
+    stroke-width: 1;
+    stroke-dasharray: 3 3;
+  }
+  
+  .recharts-cartesian-axis-line {
+    stroke: rgba(0, 0, 0, 0.1);
+    stroke-width: 1;
+  }
+  
+  .recharts-cartesian-axis-tick-line {
+    stroke: rgba(0, 0, 0, 0.1);
+    stroke-width: 1;
+  }
+  
+  .recharts-cartesian-axis-tick-value {
+    font-size: 0.75rem;
+    fill: #666;
+  }
+  
+  .recharts-tooltip-wrapper {
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+  }
+  
+  .recharts-default-tooltip {
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 12px !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1) !important;
+  }
+  
+  .recharts-tooltip-label {
+    color: #333 !important;
+    font-weight: 600 !important;
+    margin-bottom: 8px !important;
+  }
+  
+  .recharts-tooltip-item {
+    color: #666 !important;
+    margin: 4px 0 !important;
+  }
+  
+  .recharts-tooltip-item-name {
+    color: #333 !important;
+  }
+  
+  .recharts-tooltip-item-value {
+    color: #2196f3 !important;
+    font-weight: 600 !important;
+  }
+  
+  .recharts-legend-wrapper {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px !important;
+  }
+  
+  .recharts-legend-item {
+    margin-right: 16px !important;
+  }
+  
+  .recharts-legend-item-text {
+    color: #555 !important;
+    font-size: 0.85rem !important;
+  }
+  
+  /* Bar Chart Specific */
+  .recharts-bar-rectangle {
+    transition: all 0.3s ease;
+  }
+  
+  .recharts-bar-rectangle:hover {
+    opacity: 0.8;
+  }
+  
+  .bar-animation {
+    animation: growUp 1s ease-out;
+  }
+  
+  /* Line Chart Specific */
+  .recharts-line-curve {
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: drawLine 2s ease-out forwards;
+  }
+  
+  .recharts-line-dot {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .recharts-area-dot {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .recharts-area-area {
+    animation: fadeIn 1.5s ease-out;
+  }
+  
+  /* Pie Chart Specific */
+  .recharts-pie {
+    animation: rotatePie 1s ease-out;
+  }
+  
+  .recharts-pie-sector {
+    transition: all 0.3s ease;
+  }
+  
+  .recharts-pie-sector:hover {
+    transform: scale(1.05);
+    opacity: 0.9;
+  }
+  
+  /* Donut Chart */
+  .donut-chart-container {
+    position: relative;
+  }
+  
+  .donut-chart-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+  }
+  
+  .donut-chart-value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #333;
+  }
+  
+  .donut-chart-label {
+    font-size: 0.85rem;
+    color: #666;
+  }
+  
+  /* Chart Legend Custom */
+  .chart-legend {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .legend-item:hover {
+    transform: translateY(-2px);
+  }
+  
+  .legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 4px;
+  }
+  
+  .legend-text {
+    font-size: 0.85rem;
+    color: #555;
+  }
+  
+  /* Chart types */
+  /* 1. Bar chart with gradient */
+  .gradient-bar .recharts-rectangle {
+    fill: url(#barGradient);
+  }
+  
+  .gradient-bar-blue .recharts-rectangle {
+    fill: url(#barGradientBlue);
+  }
+  
+  .gradient-bar-purple .recharts-rectangle {
+    fill: url(#barGradientPurple);
+  }
+  
+  .gradient-bar-green .recharts-rectangle {
+    fill: url(#barGradientGreen);
+  }
+  
+  /* 2. Line chart with gradient area */
+  .gradient-area .recharts-area-area {
+    fill: url(#areaGradient);
+  }
+  
+  /* 3. Line chart with shadow */
+  .shadow-line .recharts-line-curve {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  }
+  
+  /* 4. Pie chart with gradient */
+  .gradient-pie .recharts-pie-sector path {
+    filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.1));
+  }
+  
+  /* Chart colors */
+  .chart-color-1 {
+    color: #2196f3;
+  }
+  
+  .chart-color-2 {
+    color: #00bcd4;
+  }
+  
+  .chart-color-3 {
+    color: #4caf50;
+  }
+  
+  .chart-color-4 {
+    color: #ff9800;
+  }
+  
+  .chart-color-5 {
+    color: #9c27b0;
+  }
+  
+  .chart-color-6 {
+    color: #f44336;
+  }
+  
+  .chart-color-7 {
+    color: #607d8b;
+  }
+  
+  .chart-color-8 {
+    color: #795548;
+  }
+  
+  /* No data state */
+  .no-data-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    color: #888;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .no-data-icon {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.5;
+  }
+  
+  .no-data-text {
+    text-align: center;
+  }
+  
+  /* Loading state */
+  .chart-loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background-color: rgba(255, 255, 255, 0.8);
+    animation: fadeIn 0.3s ease-out;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .chart-wrapper {
+      padding: 16px;
+    }
+    
+    .chart-container {
+      height: 250px;
+    }
+    
+    .chart-title {
+      font-size: 1rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .chart-container {
+      height: 200px;
+    }
+    
+    .recharts-legend-wrapper {
+      font-size: 0.75rem !important;
+    }
+  }

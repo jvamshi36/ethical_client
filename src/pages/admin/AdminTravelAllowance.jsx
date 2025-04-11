@@ -15,6 +15,7 @@ import StatusBadge from '../../components/common/StatusBadge';
 import AllowanceDetails from '../../components/allowances/AllowanceDetails';
 import ConfirmDialog from '../../components/common/ConfirmDialog';
 import { TravelAllowanceService } from '../../services/allowance.service';
+import '../../styles/pages/admin-travel-allowance.css';
 
 const AdminTravelAllowance = () => {
   const [allowances, setAllowances] = useState([]);
@@ -209,13 +210,15 @@ const AdminTravelAllowance = () => {
   
   return (
     <PageContainer 
-      title="Admin Travel Allowances" 
+      title="Admin Travel Allowances"
+      className="travel-allowance-container" 
       actions={
-        <Box sx={{ display: 'flex', gap: 2 }}>
+        <div className="filter-actions">
           <Button
             variant="outlined"
             startIcon={<FilterList />}
             onClick={() => setShowFilters(!showFilters)}
+            className="action-button secondary-button"
           >
             {showFilters ? 'Hide Filters' : 'Show Filters'}
           </Button>
@@ -223,125 +226,194 @@ const AdminTravelAllowance = () => {
             variant="outlined"
             startIcon={<Refresh />}
             onClick={() => fetchAllowances()}
+            className="action-button secondary-button"
           >
             Refresh
           </Button>
-        </Box>
+        </div>
       }
     >
+      <div className="travel-allowance-header">
+        <h1 className="travel-allowance-title">Travel Allowance Management</h1>
+      </div>
+      
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-          {error}
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3 }} 
+          onClose={() => setError('')}
+          className="error-container"
+        >
+          <div className="error-message">{error}</div>
         </Alert>
       )}
       
       {/* Filters */}
       {showFilters && (
-        <Paper sx={{ p: 3, mb: 3 }}>
+        <Paper className="filter-section">
           <Typography variant="h6" gutterBottom>
             Filters
           </Typography>
           
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-            <TextField
-              label="Search"
-              value={filters.search}
-              onChange={(e) => handleFilterChange('search', e.target.value)}
-              placeholder="Search by user, location, department, etc."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Search />
-                  </InputAdornment>
-                ),
-              }}
-              sx={{ flexGrow: 1, minWidth: 200 }}
-            />
-            
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>Status</InputLabel>
-              <Select
-                value={filters.status}
-                onChange={(e) => handleFilterChange('status', e.target.value)}
-                label="Status"
-              >
-                <MenuItem value="all">All Statuses</MenuItem>
-                <MenuItem value="PENDING">Pending</MenuItem>
-                <MenuItem value="APPROVED">Approved</MenuItem>
-                <MenuItem value="REJECTED">Rejected</MenuItem>
-              </Select>
-            </FormControl>
-            
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>Department</InputLabel>
-              <Select
-                value={filters.department}
-                onChange={(e) => handleFilterChange('department', e.target.value)}
-                label="Department"
-              >
-                <MenuItem value="">All Departments</MenuItem>
-                {departments.map((dept, index) => (
-                  <MenuItem key={index} value={dept}>{dept}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            
-            <FormControl sx={{ minWidth: 150 }}>
-              <InputLabel>Headquarters</InputLabel>
-              <Select
-                value={filters.headquarters}
-                onChange={(e) => handleFilterChange('headquarters', e.target.value)}
-                label="Headquarters"
-              >
-                <MenuItem value="">All Headquarters</MenuItem>
-                {headquartersList.map((hq, index) => (
-                  <MenuItem key={index} value={hq}>{hq}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Box>
-          
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mb: 2 }}>
-            <LocalizationProvider dateAdapter={AdapterDateFns}>
-              <DatePicker
-                label="Start Date"
-                value={filters.startDate}
-                onChange={(date) => handleFilterChange('startDate', isValid(date) ? date : null)}
-                renderInput={(params) => <TextField {...params} />}
-                sx={{ minWidth: 150 }}
+          <div className="filter-grid">
+            <div className="form-group">
+              <TextField
+                label="Search"
+                value={filters.search}
+                onChange={(e) => handleFilterChange('search', e.target.value)}
+                placeholder="Search by user, location, department, etc."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Search />
+                    </InputAdornment>
+                  ),
+                }}
+                className="form-input"
+                fullWidth
               />
-              <DatePicker
-                label="End Date"
-                value={filters.endDate}
-                onChange={(date) => handleFilterChange('endDate', isValid(date) ? date : null)}
-                renderInput={(params) => <TextField {...params} />}
-                sx={{ minWidth: 150 }}
-              />
-            </LocalizationProvider>
-          </Box>
+            </div>
+            
+            <div className="form-group">
+              <FormControl fullWidth>
+                <InputLabel>Status</InputLabel>
+                <Select
+                  value={filters.status}
+                  onChange={(e) => handleFilterChange('status', e.target.value)}
+                  label="Status"
+                  className="form-input"
+                >
+                  <MenuItem value="all">All Statuses</MenuItem>
+                  <MenuItem value="PENDING">Pending</MenuItem>
+                  <MenuItem value="APPROVED">Approved</MenuItem>
+                  <MenuItem value="REJECTED">Rejected</MenuItem>
+                </Select>
+              </FormControl>
+            </div>
+            
+            <div className="form-group">
+              <FormControl fullWidth>
+                <InputLabel>Department</InputLabel>
+                <Select
+                  value={filters.department}
+                  onChange={(e) => handleFilterChange('department', e.target.value)}
+                  label="Department"
+                  className="form-input"
+                >
+                  <MenuItem value="">All Departments</MenuItem>
+                  {departments.map((dept, index) => (
+                    <MenuItem key={index} value={dept}>{dept}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+            
+            <div className="form-group">
+              <FormControl fullWidth>
+                <InputLabel>Headquarters</InputLabel>
+                <Select
+                  value={filters.headquarters}
+                  onChange={(e) => handleFilterChange('headquarters', e.target.value)}
+                  label="Headquarters"
+                  className="form-input"
+                >
+                  <MenuItem value="">All Headquarters</MenuItem>
+                  {headquartersList.map((hq, index) => (
+                    <MenuItem key={index} value={hq}>{hq}</MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </div>
+          </div>
           
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+          <div className="filter-grid" style={{ marginTop: '16px' }}>
+            <div className="form-group">
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="Start Date"
+                  value={filters.startDate}
+                  onChange={(date) => handleFilterChange('startDate', isValid(date) ? date : null)}
+                  renderInput={(params) => <TextField {...params} className="form-input" />}
+                  fullWidth
+                />
+              </LocalizationProvider>
+            </div>
+            
+            <div className="form-group">
+              <LocalizationProvider dateAdapter={AdapterDateFns}>
+                <DatePicker
+                  label="End Date"
+                  value={filters.endDate}
+                  onChange={(date) => handleFilterChange('endDate', isValid(date) ? date : null)}
+                  renderInput={(params) => <TextField {...params} className="form-input" />}
+                  fullWidth
+                />
+              </LocalizationProvider>
+            </div>
+          </div>
+          
+          <div className="filter-actions">
             <Button
               variant="outlined"
               onClick={handleResetFilters}
-              sx={{ mr: 1 }}
+              className="action-button secondary-button"
             >
               Reset Filters
             </Button>
-          </Box>
+          </div>
         </Paper>
+      )}
+      
+      {/* Travel Detail Cards for Selected Allowance */}
+      {selectedAllowance && !detailsOpen && (
+        <div className="travel-details-card">
+          <div className="route-info">
+            <div className="route-point">
+              <div className="detail-label">From</div>
+              <div className="detail-value">{selectedAllowance.from_city}</div>
+            </div>
+            <div className="route-arrow">→</div>
+            <div className="route-point">
+              <div className="detail-label">To</div>
+              <div className="detail-value">{selectedAllowance.to_city}</div>
+            </div>
+          </div>
+          
+          <div className="travel-details-grid">
+            <div className="travel-detail-item">
+              <div className="detail-label">Travel Mode</div>
+              <div className="detail-value">{selectedAllowance.travel_mode}</div>
+            </div>
+            <div className="travel-detail-item">
+              <div className="detail-label">Distance</div>
+              <div className="detail-value">{selectedAllowance.distance} km</div>
+            </div>
+            <div className="travel-detail-item">
+              <div className="detail-label">Amount</div>
+              <div className="detail-value">${parseFloat(selectedAllowance.amount).toFixed(2)}</div>
+            </div>
+            <div className="travel-detail-item">
+              <div className="detail-label">Status</div>
+              <div className="detail-value">
+                <span className={`status-badge status-${selectedAllowance.status.toLowerCase()}`}>
+                  {selectedAllowance.status}
+                </span>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
       
       {/* Allowances Table */}
       <Paper>
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-            <CircularProgress />
-          </Box>
+          <div className="loading-container">
+            <CircularProgress className="loading-spinner" />
+          </div>
         ) : (
           <>
             <TableContainer>
-              <Table>
+              <Table className="travel-table">
                 <TableHead>
                   <TableRow>
                     <TableCell>Date</TableCell>
@@ -377,13 +449,16 @@ const AdminTravelAllowance = () => {
                           ${parseFloat(allowance.amount).toFixed(2)}
                         </TableCell>
                         <TableCell>
-                          <StatusBadge status={allowance.status} />
+                          <div className={`status-badge status-${allowance.status.toLowerCase()}`}>
+                            {allowance.status}
+                          </div>
                         </TableCell>
                         <TableCell align="center">
                           <Button
                             size="small"
                             variant="outlined"
                             onClick={() => handleViewAllowance(allowance)}
+                            className="action-button secondary-button"
                           >
                             View Details
                           </Button>

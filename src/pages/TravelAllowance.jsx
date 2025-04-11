@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { 
-  Typography, Button, Grid, Box, Paper, Alert, CircularProgress, Tabs, Tab
+  Typography, Button, Grid, Box, Paper, Alert, CircularProgress, Tabs, Tab,
+  Dialog, DialogTitle, DialogContent, DialogActions, IconButton
 } from '@mui/material';
-import { Add, InfoOutlined } from '@mui/icons-material';
+import { Add, InfoOutlined, Close } from '@mui/icons-material';
 import PageContainer from '../components/layout/PageContainer';
 import AllowanceList from '../components/allowances/AllowanceList';
 import TravelAllowanceForm from '../components/allowances/TravelAllowanceForm';
@@ -11,6 +12,7 @@ import ConfirmDialog from '../components/common/ConfirmDialog';
 import { useAuth } from '../contexts/AuthContext';
 import { TravelAllowanceService } from '../services/allowance.service';
 import '../styles/components/allowances.css';
+import '../styles/pages/travel-allowance.css';
 
 const TravelAllowance = () => {
   const { currentUser, isManager } = useAuth();
@@ -120,6 +122,10 @@ const TravelAllowance = () => {
     }
   };
   
+  const handleFormClose = () => {
+    setFormOpen(false);
+  };
+  
   const handleApprove = async (id) => {
     try {
       await TravelAllowanceService.updateStatus(id, 'APPROVED');
@@ -145,21 +151,23 @@ const TravelAllowance = () => {
   const renderContent = () => {
     if (loading && !allowances.length) {
       return (
-        <Box display="flex" justifyContent="center" alignItems="center" minHeight="400px">
-          <CircularProgress />
-        </Box>
+        <div className="loading-container">
+          <CircularProgress className="loading-spinner" />
+        </div>
       );
     }
     
     if (error) {
       return (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
-        </Alert>
+        <div className="error-container">
+          <Alert severity="error" className="error-message">
+            {error}
+          </Alert>
+        </div>
       );
     }
     
-    if (isManager() && tabValue === 1) {
+    if (tabValue === 1) {
       return (
         <AllowanceList 
           allowances={teamAllowances} 
@@ -199,91 +207,100 @@ const TravelAllowance = () => {
   };
   
   return (
-    <PageContainer 
-      title="Travel Allowance" 
-      actions={
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<Add />}
-          onClick={handleCreateNew}
-          disabled={userRoutes && userRoutes.length === 0}
-        >
-          New Travel
-        </Button>
-      }
-    >
-      {isManager() && (
-        <Paper sx={{ mb: 3 }}>
-          <Tabs
-            value={tabValue}
-            onChange={handleTabChange}
-            indicatorColor="primary"
-            textColor="primary"
-            variant="fullWidth"
+    <PageContainer>
+      <div className="travel-allowance-container">
+        <div className="page-header-container">
+          <h1 className="travel-allowance-title">
+            Travel Allowance
+          </h1>
+          
+          <Button
+            variant="contained"
+            startIcon={<Add />}
+            onClick={handleCreateNew}
+            className="new-allowance-button"
           >
-            <Tab label="My Travels" />
-            <Tab label="Team Travels" />
+            NEW TRAVEL ALLOWANCE
+          </Button>
+        </div>
+        
+        <div className="tabs-container">
+          <Tabs 
+            value={tabValue} 
+            onChange={handleTabChange}
+            className="allowance-tabs"
+            TabIndicatorProps={{
+              style: {
+                backgroundColor: '#00bcd4',
+                height: '3px'
+              }
+            }}
+          >
+            <Tab label="MY ALLOWANCES" className={tabValue === 0 ? 'active-tab' : ''} />
+            <Tab label="TEAM ALLOWANCES" className={tabValue === 1 ? 'active-tab' : ''} />
           </Tabs>
-        </Paper>
-      )}
-      
-      {/* Information box about travel allowances */}
-      <Alert severity="info" sx={{ mb: 3 }}>
-        <Box display="flex" alignItems="center">
-          <InfoOutlined sx={{ mr: 1 }} />
-          <Typography>
-            Travel allowances are based on predefined routes in your profile. Allowance amounts are calculated automatically based on the distance.
-          </Typography>
-        </Box>
-      </Alert>
-      
-      {renderContent()}
-      
-      {/* Travel Allowance Form Dialog */}
-      {formOpen && (
-        <Box>
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <TravelAllowanceForm
-              onSubmit={handleFormSubmit}
-              initialData={editMode ? selectedAllowance : null}
-              isEditMode={editMode}
-            />
-            
-            <Box sx={{ mt: 2, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button 
-                variant="outlined" 
-                onClick={() => setFormOpen(false)}
-                sx={{ mr: 2 }}
-              >
-                Cancel
-              </Button>
-            </Box>
-          </Paper>
-        </Box>
-      )}
-      
-      {/* Travel Allowance Details Dialog */}
-      <AllowanceDetails
-        open={detailsOpen}
-        onClose={() => setDetailsOpen(false)}
-        allowance={selectedAllowance}
-        type="ta"
-        onApprove={handleApprove}
-        onReject={handleReject}
-        canApprove={isManager() && tabValue === 1}
-      />
-      
-      {/* Confirm Delete Dialog */}
-      <ConfirmDialog
-        open={deleteConfirmOpen}
-        title="Delete Travel Allowance"
-        message="Are you sure you want to delete this travel allowance? This action cannot be undone."
-        confirmText="Delete"
-        confirmColor="error"
-        onConfirm={confirmDelete}
-        onCancel={() => setDeleteConfirmOpen(false)}
-      />
+        </div>
+        
+        <div className="route-section chart-section">
+          {renderContent()}
+        </div>
+        
+        {/* Modal Dialog for the form */}
+        <Dialog 
+          open={formOpen} 
+          onClose={handleFormClose}
+          maxWidth="md"
+          fullWidth
+          className="form-dialog"
+        >
+          <DialogTitle className="dialog-title">
+            <Typography variant="h6">
+              {editMode ? 'Edit Travel Allowance' : 'New Travel Allowance'}
+            </Typography>
+            <IconButton
+              aria-label="close"
+              onClick={handleFormClose}
+              sx={{
+                position: 'absolute',
+                right: 8,
+                top: 8,
+                color: 'white'
+              }}
+            >
+              <Close />
+            </IconButton>
+          </DialogTitle>
+          <DialogContent className="dialog-content">
+            {formOpen && (
+              <TravelAllowanceForm
+                editMode={editMode}
+                initialData={selectedAllowance}
+                onSubmit={handleFormSubmit}
+                onClose={handleFormClose}
+                userRoutes={userRoutes}
+              />
+            )}
+          </DialogContent>
+        </Dialog>
+        
+        <AllowanceDetails
+          open={detailsOpen}
+          onClose={() => setDetailsOpen(false)}
+          allowance={selectedAllowance}
+          type="ta"
+          onApprove={handleApprove}
+          onReject={handleReject}
+          isManager={isManager()}
+        />
+        
+        <ConfirmDialog
+          open={deleteConfirmOpen}
+          onClose={() => setDeleteConfirmOpen(false)}
+          onConfirm={confirmDelete}
+          title="Delete Travel Allowance"
+          content="Are you sure you want to delete this travel allowance? This action cannot be undone."
+        />
+      </div>
     </PageContainer>
   );
 };

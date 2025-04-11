@@ -1,5 +1,5 @@
 // src/pages/admin/UserDetails.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box, Typography, Paper, Tabs, Tab, Button, IconButton,
   Dialog, DialogTitle, DialogContent, DialogActions,
@@ -7,15 +7,17 @@ import {
   InputAdornment
 } from '@mui/material';
 import { 
-  Edit, ArrowBack, Person, Email, Business, 
+  Edit, ArrowBack, Person, Email, Business, Close,
   LocationOn, SupervisedUserCircle, Visibility, VisibilityOff, Save
 } from '@mui/icons-material';
 import UserForm from '../../components/admin/UserForm';
 import TeamManagement from '../../components/admin/TeamManagement';
-import AllowanceHistory from '../../components/admin/AllowanceHistory'; // Import the AllowanceHistory component
+import AllowanceHistory from '../../components/admin/AllowanceHistory';
 import UserTravelRoutesAdmin from '../../components/admin/UserTravelRoutesAdmin';
 import { api } from '../../services/auth.service';
 import UserService from '../../services/user.service';
+import '../../styles/components/admin.css';
+import '../../styles/pages/user-details.css'; // Import the user-details CSS
 
 const UserDetails = ({ user, onBack, onUserUpdate }) => {
   const [tabValue, setTabValue] = useState(0);
@@ -32,6 +34,9 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
     confirmPassword: '',
     showPassword: false
   });
+  
+  // Create a ref for UserForm
+  const formRef = useRef(null);
   
   useEffect(() => {
     if (user && user.id) {
@@ -114,25 +119,51 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
     }
   };
   
+  const handleSubmitForm = () => {
+    // Check if the formRef exists and has a submitForm method
+    if (formRef.current && typeof formRef.current.submitForm === 'function') {
+      formRef.current.submitForm();
+    } else {
+      console.error('Form ref or submitForm method not available');
+    }
+  };
+  
   if (loading || !userDetail) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
-        <CircularProgress />
-      </Box>
+      <div className="loading-container">
+        <CircularProgress className="loading-spinner" />
+        <Typography>Loading user details...</Typography>
+      </div>
     );
   }
   
   return (
-    <Box>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Button startIcon={<ArrowBack />} onClick={onBack}>Back to Users</Button>
-        <Button variant="contained" startIcon={<Edit />} onClick={handleEditUser}>Edit User</Button>
-      </Box>
+    <div className="user-details-container">
+      <div className="user-details-header">
+        <h1 className="user-details-title">User Details</h1>
+        <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '20px' }}>
+          <Button 
+            className="action-button secondary-button" 
+            startIcon={<ArrowBack />} 
+            onClick={onBack}
+          >
+            Back to Users
+          </Button>
+          <Button 
+            className="action-button primary-button" 
+            startIcon={<Edit />} 
+            onClick={handleEditUser}
+          >
+            Edit User
+          </Button>
+        </div>
+      </div>
       
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }} onClose={() => setError('')}>
-          {error}
-        </Alert>
+        <div className="error-container">
+          <div className="error-message">{error}</div>
+          <Button onClick={() => setError('')}>Dismiss</Button>
+        </div>
       )}
       
       {success && (
@@ -141,76 +172,82 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
         </Alert>
       )}
       
-      <Paper sx={{ mb: 3, p: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-          <Avatar sx={{ width: 80, height: 80, mr: 3, bgcolor: 'primary.main' }}>
-            {userDetail.fullName?.charAt(0) || userDetail.username?.charAt(0)}
-          </Avatar>
+      <div className="profile-section">
+        <div className="profile-header">
+          <div className="profile-avatar">
+            <Avatar sx={{ width: 100, height: 100, fontSize: '2.5rem' }}>
+              {userDetail.fullName?.charAt(0) || userDetail.username?.charAt(0)}
+            </Avatar>
+          </div>
           
-          <Box>
-            <Typography variant="h5">{userDetail.fullName}</Typography>
-            <Typography variant="body1" color="textSecondary">{userDetail.username}</Typography>
-            <Chip 
-              label={userDetail.role} 
-              color={['ADMIN', 'SUPER_ADMIN'].includes(userDetail.role) ? 'error' : 'primary'}
-              size="small"
-              sx={{ mt: 1 }}
-            />
-            <Chip 
-              label={userDetail.isActive ? 'Active' : 'Inactive'} 
-              color={userDetail.isActive ? 'success' : 'default'}
-              size="small"
-              sx={{ ml: 1, mt: 1 }}
-            />
-          </Box>
+          <div className="profile-info">
+            <h2 className="user-name">{userDetail.fullName}</h2>
+            <div className="user-role">{userDetail.username}</div>
+            <div style={{ display: 'flex', gap: '8px', marginTop: '8px' }}>
+              <Chip 
+                label={userDetail.role} 
+                color={['ADMIN', 'SUPER_ADMIN'].includes(userDetail.role) ? 'error' : 'primary'}
+                size="small"
+              />
+              <span 
+                className={`user-status ${userDetail.isActive ? 'status-active' : 'status-inactive'}`}
+              >
+                {userDetail.isActive ? 'Active' : 'Inactive'}
+              </span>
+            </div>
+          </div>
           
-          <Box sx={{ ml: 'auto' }}>
+          <div>
             <Button 
-              variant="outlined" 
+              className="action-button secondary-button"
               onClick={handleOpenPasswordReset}
             >
               Reset Password
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
         
         <Divider sx={{ my: 2 }} />
         
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-          <Box sx={{ minWidth: 200 }}>
-            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
-              <Email fontSize="small" sx={{ mr: 1 }} /> Email
-            </Typography>
-            <Typography variant="body1">{userDetail.email}</Typography>
-          </Box>
+        <div className="details-grid">
+          <div className="detail-item">
+            <div className="detail-label">
+              <Email fontSize="small" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> 
+              Email
+            </div>
+            <div className="detail-value">{userDetail.email}</div>
+          </div>
           
-          <Box sx={{ minWidth: 200 }}>
-            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
-              <Business fontSize="small" sx={{ mr: 1 }} /> Department
-            </Typography>
-            <Typography variant="body1">{userDetail.department}</Typography>
-          </Box>
+          <div className="detail-item">
+            <div className="detail-label">
+              <Business fontSize="small" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> 
+              Department
+            </div>
+            <div className="detail-value">{userDetail.department || 'Not specified'}</div>
+          </div>
           
-          <Box sx={{ minWidth: 200 }}>
-            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
-              <LocationOn fontSize="small" sx={{ mr: 1 }} /> Headquarters
-            </Typography>
-            <Typography variant="body1">{userDetail.headquarters}</Typography>
-          </Box>
+          <div className="detail-item">
+            <div className="detail-label">
+              <LocationOn fontSize="small" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> 
+              Headquarters
+            </div>
+            <div className="detail-value">{userDetail.headquarters || 'Not specified'}</div>
+          </div>
           
-          <Box sx={{ minWidth: 200 }}>
-            <Typography variant="body2" color="textSecondary" sx={{ display: 'flex', alignItems: 'center' }}>
-              <SupervisedUserCircle fontSize="small" sx={{ mr: 1 }} /> Reporting Manager
-            </Typography>
-            <Typography variant="body1">
+          <div className="detail-item">
+            <div className="detail-label">
+              <SupervisedUserCircle fontSize="small" style={{ marginRight: '4px', verticalAlign: 'middle' }} /> 
+              Reporting Manager
+            </div>
+            <div className="detail-value">
               {userDetail.reportingManager?.fullName || 'None'}
               {userDetail.reportingManager?.role && ` (${userDetail.reportingManager.role})`}
-            </Typography>
-          </Box>
-        </Box>
-      </Paper>
+            </div>
+          </div>
+        </div>
+      </div>
       
-      <Paper>
+      <Paper sx={{ borderRadius: '16px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0, 0, 0, 0.06)' }}>
         <Tabs
           value={tabValue}
           onChange={handleTabChange}
@@ -245,14 +282,45 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
         maxWidth="md"
         fullWidth
       >
-        <DialogTitle>Edit User</DialogTitle>
-        <DialogContent>
+        <DialogTitle className="form-dialog-title">
+          <Typography variant="h6">Edit User</Typography>
+          <IconButton
+            aria-label="close"
+            onClick={() => setEditFormOpen(false)}
+            sx={{
+              position: 'absolute',
+              right: 8,
+              top: 8,
+              color: 'gray'
+            }}
+          >
+            <Close />
+          </IconButton>
+        </DialogTitle>
+        <DialogContent sx={{ padding: '24px' }}>
           <UserForm
+            ref={formRef}
             initialData={userDetail}
             isEditMode={true}
             onSubmit={handleUserFormSubmit}
           />
         </DialogContent>
+        <DialogActions sx={{ padding: '16px 24px' }}>
+          <Button 
+            className="action-button secondary-button"
+            variant="outlined" 
+            onClick={() => setEditFormOpen(false)}
+          >
+            Cancel
+          </Button>
+          <Button 
+            className="action-button primary-button"
+            variant="contained"
+            onClick={handleSubmitForm}
+          >
+            Update
+          </Button>
+        </DialogActions>
       </Dialog>
       
       {/* Password Reset Dialog */}
@@ -308,18 +376,19 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPasswordResetOpen(false)}>Cancel</Button>
+          <Button className="action-button secondary-button" onClick={() => setPasswordResetOpen(false)}>
+            Cancel
+          </Button>
           <Button
+            className="action-button primary-button"
             onClick={handleResetPassword}
-            variant="contained"
-            color="primary"
             disabled={!passwordData.newPassword || passwordData.newPassword !== passwordData.confirmPassword}
           >
             Reset Password
           </Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </div>
   );
 };
 

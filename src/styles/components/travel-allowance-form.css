@@ -1,0 +1,267 @@
+/* src/styles/components/allowances.css */
+
+/* Form Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  /* Form Container */
+  .allowance-form-container {
+    width: 100%;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .allowance-form {
+    background: #fff;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+    animation: slideInUp 0.5s ease-out;
+    transition: all 0.3s ease;
+  }
+  
+  .allowance-form:hover {
+    box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Form Title */
+  .form-title {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 24px;
+    position: relative;
+    display: inline-block;
+  }
+  
+  .form-title::after {
+    content: '';
+    position: absolute;
+    bottom: -8px;
+    left: 0;
+    width: 40px;
+    height: 3px;
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+    border-radius: 2px;
+  }
+  
+  /* Form Grid */
+  .form-grid {
+    margin-top: 16px;
+  }
+  
+  /* Form Inputs */
+  .form-input {
+    margin-bottom: 8px;
+  }
+  
+  .form-input .MuiOutlinedInput-root {
+    border-radius: 8px;
+    transition: all 0.3s ease;
+  }
+  
+  .form-input .MuiOutlinedInput-root:hover {
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  .form-input .MuiOutlinedInput-root.Mui-focused {
+    box-shadow: 0 4px 15px rgba(33, 150, 243, 0.15);
+  }
+  
+  /* Date Picker */
+  .date-picker .MuiOutlinedInput-root {
+    border-radius: 8px;
+  }
+  
+  /* Currency Symbol */
+  .currency-symbol {
+    color: #666;
+    margin-right: 8px;
+  }
+  
+  /* Action Buttons */
+  .action-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 16px;
+    margin-top: 16px;
+  }
+  
+  .submit-button, .cancel-button {
+    padding: 8px 24px;
+    border-radius: 8px;
+    font-weight: 500;
+    text-transform: none;
+    transition: all 0.3s ease;
+  }
+  
+  .submit-button {
+    background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+    color: white;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+  }
+  
+  .submit-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.3);
+  }
+  
+  .cancel-button {
+    border: 1px solid #e0e0e0;
+    color: #666;
+  }
+  
+  .cancel-button:hover {
+    background-color: #f5f5f5;
+    border-color: #d0d0d0;
+  }
+  
+  /* Warning Alert */
+  .warning-alert {
+    border-radius: 8px;
+    margin-bottom: 16px;
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  /* Loading State */
+  .loading-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 300px;
+    animation: fadeIn 0.4s ease-out;
+  }
+  
+  .loading-spinner {
+    color: #2196f3;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .action-buttons {
+      flex-direction: column-reverse;
+    }
+    
+    .submit-button, .cancel-button {
+      width: 100%;
+    }
+    
+    .allowance-form {
+      padding: 16px;
+    }
+  }
+  
+  /* Allowance List */
+  .allowance-list {
+    animation: fadeIn 0.5s ease-out;
+  }
+  
+  .allowance-item {
+    background: #fff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+    animation: slideInUp 0.5s ease-out;
+  }
+  
+  .allowance-item:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+  }
+  
+  .item-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  .item-title {
+    font-weight: 600;
+    color: #333;
+  }
+  
+  .item-date {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .item-details {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-top: 12px;
+  }
+  
+  .item-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  
+  .detail-label {
+    color: #666;
+    font-size: 0.9rem;
+  }
+  
+  .detail-value {
+    font-weight: 500;
+    color: #333;
+  }
+  
+  .item-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+  }
+  
+  .action-icon {
+    padding: 6px;
+    border-radius: 50%;
+    color: #666;
+    transition: all 0.2s ease;
+  }
+  
+  .action-icon:hover {
+    background-color: #f5f5f5;
+    color: #2196f3;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+  }
+  
+  .status-pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+  }
+  
+  .status-approved {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .status-rejected {
+    background-color: #fbe9e7;
+    color: #d32f2f;
+  }

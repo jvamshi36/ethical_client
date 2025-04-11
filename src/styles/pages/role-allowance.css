@@ -1,0 +1,241 @@
+/* src/styles/pages/role-allowance.css */
+
+/* Page Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Page Layout */
+.role-allowance-container {
+  animation: fadeIn 0.5s ease-out;
+  padding: 24px;
+}
+
+.role-allowance-header {
+  margin-bottom: 32px;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.role-allowance-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  position: relative;
+  display: inline-block;
+}
+
+.role-allowance-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 50px;
+  height: 4px;
+  background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+  border-radius: 2px;
+}
+
+/* Role Cards Grid */
+.role-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.role-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  animation: slideInUp 0.5s ease-out;
+}
+
+.role-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.role-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.role-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.role-status {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.role-details {
+  margin-top: 16px;
+}
+
+.role-detail-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 8px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-label {
+  color: #666;
+}
+
+.detail-value {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Allowance Settings Form */
+.allowance-settings {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.settings-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 8px;
+  color: #333;
+  font-weight: 500;
+}
+
+.form-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  transition: border-color 0.3s ease;
+}
+
+.form-input:focus {
+  border-color: #2196f3;
+  outline: none;
+}
+
+/* Action Buttons */
+.action-button {
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.primary-button {
+  background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+  color: white;
+  border: none;
+}
+
+.primary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.2);
+}
+
+.secondary-button {
+  background: #f5f7fa;
+  color: #666;
+  border: 1px solid #e0e0e0;
+}
+
+.secondary-button:hover {
+  background: #e9ecef;
+}
+
+/* Role Table */
+.role-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.role-table th {
+  background-color: #f5f7fa;
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+  color: #333;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.role-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+}
+
+.role-table tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+.role-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  padding: 48px;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.loading-spinner {
+  margin-bottom: 16px;
+}
+
+.error-message {
+  color: #e53935;
+  margin-bottom: 16px;
+}

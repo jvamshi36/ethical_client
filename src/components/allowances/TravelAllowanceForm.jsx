@@ -9,9 +9,9 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { api } from '../../services/auth.service';
 import { TravelAllowanceService } from '../../services/allowance.service';
-import '../../styles/components/allowances.css';
+import '../../styles/components/travel-allowance-form.css';
 
-const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
+const TravelAllowanceForm = ({ onSubmit, onClose, initialData = null, editMode = false, userRoutes = [] }) => {
   const [formData, setFormData] = useState(initialData || {
     date: new Date(),
     fromCity: '',
@@ -24,8 +24,6 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
   
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [routeLoading, setRouteLoading] = useState(false);
-  const [userRoutes, setUserRoutes] = useState([]);
   const [selectedRoute, setSelectedRoute] = useState('');
   
   // Travel modes list
@@ -37,31 +35,13 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
   ];
   
   useEffect(() => {
-    fetchUserRoutes();
-    
     // If in edit mode, set the selected route
-    if (isEditMode && initialData) {
+    if (editMode && initialData) {
       const routeKey = `${initialData.fromCity}|${initialData.toCity}`;
       setSelectedRoute(routeKey);
+      setFormData(initialData);
     }
-  }, [isEditMode, initialData]);
-  
-  const fetchUserRoutes = async () => {
-    setLoading(true);
-    try {
-      // Fetch user's predefined travel routes - using the correct endpoint
-      const response = await TravelAllowanceService.getUserTravelRoutes();
-      
-      // Ensure we have an array
-      const routes = Array.isArray(response) ? response : [];
-      setUserRoutes(routes);
-      
-      setLoading(false);
-    } catch (error) {
-      console.error('Error fetching user routes:', error);
-      setLoading(false);
-    }
-  };
+  }, [editMode, initialData]);
   
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -167,7 +147,7 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
   return (
     <form onSubmit={handleSubmit} className="allowance-form">
       <Typography variant="h6" className="form-title">
-        {isEditMode ? 'Edit Travel Allowance' : 'New Travel Allowance'}
+        {editMode ? 'Edit Travel Allowance' : 'New Travel Allowance'}
       </Typography>
       
       <Grid container spacing={3}>
@@ -315,14 +295,23 @@ const TravelAllowanceForm = ({ onSubmit, initialData = null, isEditMode = false 
           />
         </Grid>
         
-        <Grid item xs={12}>
+        <Grid item xs={12} className="action-buttons">
+          <Button
+            type="button"
+            variant="outlined"
+            color="secondary"
+            onClick={onClose}
+            className="cancel-button"
+          >
+            Cancel
+          </Button>
           <Button
             type="submit"
             variant="contained"
             color="primary"
             className="submit-button"
           >
-            {isEditMode ? 'Update' : 'Submit'}
+            {editMode ? 'Update' : 'Submit'}
           </Button>
         </Grid>
       </Grid>

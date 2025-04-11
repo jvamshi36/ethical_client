@@ -1,3 +1,5 @@
+// Enhanced version of src/services/analytics.service.js
+
 import { api } from './auth.service';
 
 const AnalyticsService = {
@@ -160,6 +162,7 @@ const AnalyticsService = {
       if (params.headquarters) queryParams.append('headquarters', params.headquarters);
       if (params.department) queryParams.append('department', params.department);
       if (params.userId) queryParams.append('userId', params.userId);
+      if (params.role) queryParams.append('role', params.role);
       
       const response = await api.get(`/analytics/admin?${queryParams.toString()}`);
       return response.data || {
@@ -202,13 +205,23 @@ const AnalyticsService = {
       if (params.headquarters) queryParams.append('headquarters', params.headquarters);
       if (params.department) queryParams.append('department', params.department);
       if (params.userId) queryParams.append('userId', params.userId);
+      if (params.role) queryParams.append('role', params.role);
       if (params.format) queryParams.append('format', params.format);
       
       const response = await api.get(`/analytics/export?${queryParams.toString()}`, {
         responseType: 'blob'
       });
       
-      return response.data;
+      // Create download link
+      const url = window.URL.createObjectURL(response.data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `expense-report-${new Date().toISOString().split('T')[0]}.${params.format || 'xlsx'}`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      
+      return true;
     } catch (error) {
       console.error('Error exporting data:', error);
       throw error;

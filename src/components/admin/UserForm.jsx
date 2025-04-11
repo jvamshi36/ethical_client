@@ -8,7 +8,7 @@ import FormHelperText from '@mui/material/FormHelperText';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
 import { api } from '../../services/auth.service';
 import { ROLES, ROLE_DISPLAY_NAMES } from '../../constants/roles';
-import '../../styles/components/admin.css';
+import '../../styles/components/user-form.css';
 
 const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
   const [formData, setFormData] = useState({
@@ -48,8 +48,6 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
         reportingManagerId: String(reportingId), // Ensure it's a string
         isActive: initialData.isActive !== undefined ? initialData.isActive : true
       });
-      
-      console.log('Initialized form with reportingManagerId:', String(reportingId));
     }
     fetchReferenceData();
   }, [initialData]);
@@ -71,14 +69,11 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
         api.get('/reference/headquarters')
       ]);
       
-      // Ensure departments is an array
       setDepartments(Array.isArray(deptResponse.data) ? deptResponse.data : []);
-      // Ensure headquarters is an array
       setHeadquarters(Array.isArray(hqResponse.data) ? hqResponse.data : []);
     } catch (error) {
       console.error('Error fetching reference data:', error);
       setApiError('Failed to fetch reference data. Please try again later.');
-      // Initialize with empty arrays to prevent mapping errors
       setDepartments([]);
       setHeadquarters([]);
     } finally {
@@ -96,24 +91,16 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
       } else if ([ROLES.ABM, ROLES.RBM].includes(formData.role)) {
         managerRoles = `${ROLES.DGM},${ROLES.ZBM}`;
       } else {
-        // No manager roles needed for top-level roles
         setManagers([]);
         return;
       }
       
       if (managerRoles) {
-        // Include headquarters in the query to filter managers by the same headquarters
         const url = formData.headquarters 
           ? `/users?roles=${managerRoles}&headquarters=${encodeURIComponent(formData.headquarters)}`
           : `/users?roles=${managerRoles}`;
           
-        console.log('Fetching managers with URL:', url);
         const response = await api.get(url);
-        
-        // Log the response for debugging
-        console.log('Managers response:', response.data);
-        
-        // Ensure managers is an array
         setManagers(Array.isArray(response.data) ? response.data : []);
       } else {
         setManagers([]);
@@ -121,7 +108,6 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     } catch (err) {
       console.error('Error fetching managers:', err);
       setApiError('Failed to fetch managers. Please try again later.');
-      // Initialize with empty array to prevent mapping errors
       setManagers([]);
     }
   };
@@ -130,22 +116,13 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     const { name, value } = e.target;
     let newValue = value;
     
-    // Special handling for reportingManagerId to ensure it's a string or empty string
     if (name === 'reportingManagerId') {
-      // Convert any non-string value to string, or empty string if null/undefined
       newValue = value === null || value === undefined ? '' : String(value);
-      console.log(`Converted reportingManagerId from ${value} to ${newValue}`);
     }
     
     const newFormData = { ...formData, [name]: newValue };
     
-    // Reset reportingManagerId when role changes
-    if (name === 'role') {
-      newFormData.reportingManagerId = '';
-    }
-    
-    // Reset reportingManagerId when headquarters changes
-    if (name === 'headquarters') {
+    if (name === 'role' || name === 'headquarters') {
       newFormData.reportingManagerId = '';
     }
     
@@ -176,235 +153,299 @@ const UserForm = ({ onSubmit, initialData = null, isEditMode = false }) => {
     if (!formData.department) newErrors.department = 'Department is required';
     if (!formData.headquarters) newErrors.headquarters = 'Headquarters is required';
     
-    // Make reporting manager optional for all roles
-    // The field will still show up for relevant roles, but it's not mandatory
-    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
   
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     
     if (validate()) {
-      try {
-        // If we're in edit mode, include the ID in the log
-        if (isEditMode && initialData) {
-          console.log('Submitting edited user data with ID:', initialData.id);
-        }
-        
-        // Log the form data being submitted
-        console.log('Submitting form data:', formData);
-        
-        await onSubmit(formData);
-      } catch (error) {
-        console.error('Error submitting form:', error);
-        setApiError('Failed to save user. Please try again.');
-      }
+      onSubmit(formData);
     }
   };
   
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', my: 4 }}>
-        <CircularProgress />
-      </Box>
+      <div className="loading-container">
+        <CircularProgress className="loading-spinner" />
+      </div>
     );
   }
   
   return (
-    <form onSubmit={handleSubmit} className="user-form">
-      <Typography variant="h6" gutterBottom>
-        {isEditMode ? 'Edit User' : 'Create New User'}
-      </Typography>
-      
-      {apiError && (
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {apiError}
-        </Alert>
-      )}
-      
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="Full Name"
-            name="fullName"
-            value={formData.fullName}
-            onChange={handleChange}
-            fullWidth
-            required
-            error={!!errors.fullName}
-            helperText={errors.fullName}
-          />
-        </Grid>
+    <div className="user-form-container">
+      <form onSubmit={handleSubmit} id="user-form" className="user-form">
+        {apiError && (
+          <Alert severity="error" sx={{ mb: 2 }} className="warning-alert">
+            {apiError}
+          </Alert>
+        )}
         
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="Email"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleChange}
-            fullWidth
-            required
-            error={!!errors.email}
-            helperText={errors.email}
-          />
-        </Grid>
+        <Typography variant="subtitle1" className="form-section-title">
+          User Information
+        </Typography>
         
-        <Grid item xs={12} md={6}>
-          <TextField
-            label="Username"
-            name="username"
-            value={formData.username}
-            onChange={handleChange}
-            fullWidth
-            required
-            error={!!errors.username}
-            helperText={errors.username}
-            disabled={isEditMode}
-          />
-        </Grid>
-        
-        {!isEditMode && (
-          <Grid item xs={12} md={6}>
+        <Grid container spacing={3} className="form-grid">
+          <Grid item xs={12} sm={6} md={4}>
             <TextField
-              label="Password"
-              name="password"
-              type={showPassword ? 'text' : 'password'}
-              value={formData.password}
+              label="Full Name"
+              name="fullName"
+              value={formData.fullName}
               onChange={handleChange}
               fullWidth
               required
-              error={!!errors.password}
-              helperText={errors.password}
+              error={!!errors.fullName}
+              helperText={errors.fullName}
+              className="form-input"
+              placeholder="Enter full name"
               InputProps={{
-                endAdornment: (
-                  <InputAdornment position="end">
-                    <IconButton onClick={handleTogglePassword} edge="end">
-                      {showPassword ? <VisibilityOff /> : <Visibility />}
-                    </IconButton>
-                  </InputAdornment>
-                ),
+                style: { fontSize: '1rem', padding: '2px 0' }
+              }}
+              InputLabelProps={{
+                style: { fontSize: '1.1rem' }
               }}
             />
           </Grid>
-        )}
-        
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.role}>
-            <InputLabel>Role</InputLabel>
-            <Select
-              name="role"
-              value={formData.role}
+          
+          <Grid item xs={12} sm={6} md={4}>
+            <TextField
+              label="Email Address"
+              name="email"
+              type="email"
+              value={formData.email}
               onChange={handleChange}
-              label="Role"
-            >
-              <MenuItem value="">Select Role</MenuItem>
-              {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
-                <MenuItem key={value} value={value}>
-                  {label}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
-          </FormControl>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.department}>
-            <InputLabel>Department</InputLabel>
-            <Select
-              name="department"
-              value={formData.department}
+              fullWidth
+              required
+              error={!!errors.email}
+              helperText={errors.email}
+              className="form-input"
+              placeholder="Enter email address"
+              InputProps={{
+                style: { fontSize: '1rem', padding: '2px 0' }
+              }}
+              InputLabelProps={{
+                style: { fontSize: '1.1rem' }
+              }}
+            />
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={4}>
+            <TextField
+              label="Username"
+              name="username"
+              value={formData.username}
               onChange={handleChange}
-              label="Department"
-            >
-              <MenuItem value="">Select Department</MenuItem>
-              {Array.isArray(departments) && departments.map(dept => (
-                <MenuItem key={dept.id} value={dept.name}>
-                  {dept.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.department && <FormHelperText>{errors.department}</FormHelperText>}
-          </FormControl>
-        </Grid>
-        
-        <Grid item xs={12} md={6}>
-          <FormControl fullWidth error={!!errors.headquarters}>
-            <InputLabel>Headquarters</InputLabel>
-            <Select
-              name="headquarters"
-              value={formData.headquarters}
-              onChange={handleChange}
-              label="Headquarters"
-            >
-              <MenuItem value="">Select Headquarters</MenuItem>
-              {Array.isArray(headquarters) && headquarters.map(hq => (
-                <MenuItem key={hq.id} value={hq.name}>
-                  {hq.name}
-                </MenuItem>
-              ))}
-            </Select>
-            {errors.headquarters && <FormHelperText>{errors.headquarters}</FormHelperText>}
-          </FormControl>
-        </Grid>
-        
-        {formData.role && !['DGM', 'ZBM', 'ADMIN', 'SUPER_ADMIN'].includes(formData.role) && (
-          <Grid item xs={12} md={6}>
-            <FormControl fullWidth error={!!errors.reportingManagerId}>
-              <InputLabel>Reporting Manager (Optional)</InputLabel>
-              <Select
-                name="reportingManagerId"
-                value={formData.reportingManagerId}
+              fullWidth
+              required
+              error={!!errors.username}
+              helperText={errors.username}
+              disabled={isEditMode}
+              className="form-input"
+              placeholder="Enter username"
+              InputProps={{
+                style: { fontSize: '1rem', padding: '2px 0' }
+              }}
+              InputLabelProps={{
+                style: { fontSize: '1.1rem' }
+              }}
+            />
+          </Grid>
+          
+          {!isEditMode && (
+            <Grid item xs={12} sm={6} md={6}>
+              <TextField
+                label="Password"
+                name="password"
+                type={showPassword ? 'text' : 'password'}
+                value={formData.password}
                 onChange={handleChange}
-                label="Reporting Manager (Optional)"
+                fullWidth
+                required
+                error={!!errors.password}
+                helperText={errors.password}
+                className="form-input password-field"
+                placeholder="Enter password"
+                InputProps={{
+                  style: { fontSize: '1rem', padding: '2px 0' },
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={handleTogglePassword} edge="end">
+                        {showPassword ? <VisibilityOff /> : <Visibility />}
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+                InputLabelProps={{
+                  style: { fontSize: '1.1rem' }
+                }}
+              />
+            </Grid>
+          )}
+          
+          <Grid item xs={12}>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={formData.isActive}
+                  onChange={handleSwitchChange}
+                  name="isActive"
+                  color="primary"
+                  size="medium"
+                />
+              }
+              label="Active User"
+              className="user-status-switch"
+            />
+          </Grid>
+        </Grid>
+        
+        <Typography variant="subtitle1" className="form-section-title" sx={{ mt: 3 }}>
+          Organization Details
+        </Typography>
+        
+        <Grid container spacing={3} className="form-grid">
+          <Grid item xs={12} sm={6} md={4}>
+            <FormControl fullWidth error={!!errors.role} className="form-input dropdown-field">
+              <InputLabel style={{ fontSize: '1.1rem' }}>User Role</InputLabel>
+              <Select
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                label="User Role"
+                placeholder="Select role"
+                sx={{
+                  fontSize: '1rem',
+                  '& .MuiSelect-select': {
+                    padding: '16px 14px',
+                  }
+                }}
               >
-                <MenuItem value="">None</MenuItem>
-                {Array.isArray(managers) && managers.length > 0 ? (
-                  managers.map(manager => (
-                    <MenuItem key={manager.id} value={manager.id}>
-                      {manager.fullName || manager.full_name} ({manager.role})
-                    </MenuItem>
-                  ))
-                ) : (
-                  <MenuItem disabled>No managers available</MenuItem>
-                )}
+                <MenuItem value="">Select Role</MenuItem>
+                {Object.entries(ROLE_DISPLAY_NAMES).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
               </Select>
-              {errors.reportingManagerId && (
-                <FormHelperText>{errors.reportingManagerId}</FormHelperText>
-              )}
+              {errors.role && <FormHelperText>{errors.role}</FormHelperText>}
             </FormControl>
           </Grid>
-        )}
-        
-        <Grid item xs={12}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={formData.isActive}
-                onChange={handleSwitchChange}
-                name="isActive"
-                color="primary"
-              />
-            }
-            label="Active User"
-          />
+          
+          <Grid item xs={12} sm={6} md={4}>
+            <FormControl fullWidth error={!!errors.department} className="form-input dropdown-field">
+              <InputLabel style={{ fontSize: '1.1rem' }}>Department</InputLabel>
+              <Select
+                name="department"
+                value={formData.department}
+                onChange={handleChange}
+                label="Department"
+                placeholder="Select department"
+                sx={{
+                  fontSize: '1rem',
+                  '& .MuiSelect-select': {
+                    padding: '16px 14px',
+                  }
+                }}
+              >
+                <MenuItem value="">Select Department</MenuItem>
+                {Array.isArray(departments) && departments.map(dept => (
+                  <MenuItem key={dept.id} value={dept.name}>
+                    {dept.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.department && <FormHelperText>{errors.department}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          
+          <Grid item xs={12} sm={6} md={4}>
+            <FormControl fullWidth error={!!errors.headquarters} className="form-input dropdown-field">
+              <InputLabel style={{ fontSize: '1.1rem' }}>Headquarters</InputLabel>
+              <Select
+                name="headquarters"
+                value={formData.headquarters}
+                onChange={handleChange}
+                label="Headquarters"
+                placeholder="Select headquarters"
+                sx={{
+                  fontSize: '1rem',
+                  '& .MuiSelect-select': {
+                    padding: '16px 14px',
+                  }
+                }}
+              >
+                <MenuItem value="">Select Headquarters</MenuItem>
+                {Array.isArray(headquarters) && headquarters.map(hq => (
+                  <MenuItem key={hq.id} value={hq.name}>
+                    {hq.name}
+                  </MenuItem>
+                ))}
+              </Select>
+              {errors.headquarters && <FormHelperText>{errors.headquarters}</FormHelperText>}
+            </FormControl>
+          </Grid>
+          
+          {formData.role && !['DGM', 'ZBM', 'ADMIN', 'SUPER_ADMIN'].includes(formData.role) && (
+            <Grid item xs={12} sm={6} md={4}>
+              <FormControl fullWidth error={!!errors.reportingManagerId} className="form-input dropdown-field">
+                <InputLabel style={{ fontSize: '1.1rem' }}>Reporting Manager</InputLabel>
+                <Select
+                  name="reportingManagerId"
+                  value={formData.reportingManagerId}
+                  onChange={handleChange}
+                  label="Reporting Manager"
+                  placeholder="Select reporting manager"
+                  sx={{
+                    fontSize: '1rem',
+                    '& .MuiSelect-select': {
+                      padding: '16px 14px',
+                    }
+                  }}
+                >
+                  <MenuItem value="">None Selected</MenuItem>
+                  {Array.isArray(managers) && managers.length > 0 ? (
+                    managers.map(manager => (
+                      <MenuItem key={manager.id} value={manager.id}>
+                        {manager.fullName || manager.full_name} ({manager.role})
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem disabled>No managers available</MenuItem>
+                  )}
+                </Select>
+                {errors.reportingManagerId && (
+                  <FormHelperText>{errors.reportingManagerId}</FormHelperText>
+                )}
+                <FormHelperText>Optional: Select a reporting manager</FormHelperText>
+              </FormControl>
+            </Grid>
+          )}
         </Grid>
         
-        <Grid item xs={12}>
+        <div className="action-buttons">
+          <Button 
+            type="button"
+            variant="outlined"
+            className="cancel-button"
+            onClick={() => {}}
+          >
+            Cancel
+          </Button>
           <Button
             type="submit"
             variant="contained"
-            color="primary"
-            size="large"
+            className="submit-button"
+            id="user-form-submit"
           >
             {isEditMode ? 'Update User' : 'Create User'}
           </Button>
-        </Grid>
-      </Grid>
-    </form>
+        </div>
+        
+        {/* Hidden submit button for external triggering */}
+        <input type="submit" style={{ display: 'none' }} />
+      </form>
+    </div>
   );
 };
 

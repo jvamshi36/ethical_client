@@ -9,6 +9,7 @@ import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon } from '@mui/ico
 import { api } from '../../services/auth.service';
 import CityManagement from '../../components/admin/CityManagement';
 import RoleAllowanceAdmin from '../../pages/admin/RoleAllowanceAdmin';
+import '../../styles/pages/system-settings.css';
 
 // TabPanel component for tab content
 function TabPanel({ children, value, index, ...other }) {
@@ -18,12 +19,13 @@ function TabPanel({ children, value, index, ...other }) {
       hidden={value !== index}
       id={`settings-tabpanel-${index}`}
       aria-labelledby={`settings-tab-${index}`}
+      className="settings-section"
       {...other}
     >
       {value === index && (
-        <Box sx={{ p: 3 }}>
+        <div>
           {children}
-        </Box>
+        </div>
       )}
     </div>
   );
@@ -251,143 +253,175 @@ const SystemSettings = () => {
   };
   
   return (
-    <Box>
+    <div className="settings-container">
+      <div className="settings-header">
+        <h1 className="settings-title">System Settings</h1>
+      </div>
+      
       <Paper>
-        <Tabs
-          value={tabValue}
-          onChange={handleTabChange}
-          indicatorColor="primary"
-          textColor="primary"
-          centered
-        >
-          <Tab label="Departments" />
-          <Tab label="Headquarters" />
-          <Tab label="Role Allowances" />
-          <Tab label="Cities" />
-        </Tabs>
+        <div className="settings-nav">
+          <Tab 
+            label="Departments" 
+            className={`nav-item ${tabValue === 0 ? 'active' : ''}`}
+            onClick={(e) => handleTabChange(e, 0)}
+          />
+          <Tab 
+            label="Headquarters" 
+            className={`nav-item ${tabValue === 1 ? 'active' : ''}`}
+            onClick={(e) => handleTabChange(e, 1)}
+          />
+          <Tab 
+            label="Role Allowances" 
+            className={`nav-item ${tabValue === 2 ? 'active' : ''}`}
+            onClick={(e) => handleTabChange(e, 2)}
+          />
+          <Tab 
+            label="Cities" 
+            className={`nav-item ${tabValue === 3 ? 'active' : ''}`}
+            onClick={(e) => handleTabChange(e, 3)}
+          />
+        </div>
         
         {/* Departments Tab */}
         <TabPanel value={tabValue} index={0}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Departments</Typography>
+          <div className="section-header">
+            <div className="section-title">Departments</div>
             <Button 
               variant="contained" 
               color="primary" 
               startIcon={<AddIcon />}
               onClick={() => openDepartmentDialog()}
+              className="action-button primary-button"
             >
               Add Department
             </Button>
-          </Box>
+          </div>
           
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Description</TableCell>
-                  <TableCell width="150">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center">Loading...</TableCell>
-                  </TableRow>
-                ) : departments.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={3} align="center">No departments found</TableCell>
-                  </TableRow>
-                ) : (
-                  departments.map((dept) => (
-                    <TableRow key={dept.id}>
-                      <TableCell>{dept.name}</TableCell>
-                      <TableCell>{dept.description}</TableCell>
-                      <TableCell>
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => openDepartmentDialog(dept)}
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton 
-                          color="error" 
-                          onClick={() => deleteDepartment(dept.id)}
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner">Loading departments...</div>
+            </div>
+          ) : (
+            <div className="settings-grid">
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-header">Name</TableCell>
+                      <TableCell className="table-header">Description</TableCell>
+                      <TableCell width="150" className="table-header">Actions</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {departments.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={3} align="center">No departments found</TableCell>
+                      </TableRow>
+                    ) : (
+                      departments.map((dept) => (
+                        <TableRow key={dept.id} className="setting-card">
+                          <TableCell className="setting-name">{dept.name}</TableCell>
+                          <TableCell>{dept.description}</TableCell>
+                          <TableCell>
+                            <div className="setting-header">
+                              <IconButton 
+                                color="primary" 
+                                onClick={() => openDepartmentDialog(dept)}
+                                size="small"
+                                className="action-button secondary-button"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton 
+                                color="error" 
+                                onClick={() => deleteDepartment(dept.id)}
+                                size="small"
+                                className="action-button secondary-button"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          )}
         </TabPanel>
         
         {/* Headquarters Tab */}
         <TabPanel value={tabValue} index={1}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
-            <Typography variant="h6">Headquarters</Typography>
+          <div className="section-header">
+            <div className="section-title">Headquarters</div>
             <Button 
               variant="contained" 
               color="primary" 
               startIcon={<AddIcon />}
               onClick={() => openHeadquartersDialog()}
+              className="action-button primary-button"
             >
               Add Headquarters
             </Button>
-          </Box>
+          </div>
           
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Name</TableCell>
-                  <TableCell>Location</TableCell>
-                  <TableCell>Address</TableCell>
-                  <TableCell width="150">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {loading ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">Loading...</TableCell>
-                  </TableRow>
-                ) : headquarters.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={4} align="center">No headquarters found</TableCell>
-                  </TableRow>
-                ) : (
-                  headquarters.map((hq) => (
-                    <TableRow key={hq.id}>
-                      <TableCell>{hq.name}</TableCell>
-                      <TableCell>{hq.location}</TableCell>
-                      <TableCell>{hq.address}</TableCell>
-                      <TableCell>
-                        <IconButton 
-                          color="primary" 
-                          onClick={() => openHeadquartersDialog(hq)}
-                          size="small"
-                        >
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton 
-                          color="error" 
-                          onClick={() => deleteHeadquarters(hq.id)}
-                          size="small"
-                        >
-                          <DeleteIcon />
-                        </IconButton>
-                      </TableCell>
+          {loading ? (
+            <div className="loading-container">
+              <div className="loading-spinner">Loading headquarters...</div>
+            </div>
+          ) : (
+            <div className="settings-grid">
+              <TableContainer>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell className="table-header">Name</TableCell>
+                      <TableCell className="table-header">Location</TableCell>
+                      <TableCell className="table-header">Address</TableCell>
+                      <TableCell width="150" className="table-header">Actions</TableCell>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                  </TableHead>
+                  <TableBody>
+                    {headquarters.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={4} align="center">No headquarters found</TableCell>
+                      </TableRow>
+                    ) : (
+                      headquarters.map((hq) => (
+                        <TableRow key={hq.id} className="setting-card">
+                          <TableCell className="setting-name">{hq.name}</TableCell>
+                          <TableCell>{hq.location}</TableCell>
+                          <TableCell>{hq.address}</TableCell>
+                          <TableCell>
+                            <div className="setting-header">
+                              <IconButton 
+                                color="primary" 
+                                onClick={() => openHeadquartersDialog(hq)}
+                                size="small"
+                                className="action-button secondary-button"
+                              >
+                                <EditIcon />
+                              </IconButton>
+                              <IconButton 
+                                color="error" 
+                                onClick={() => deleteHeadquarters(hq.id)}
+                                size="small"
+                                className="action-button secondary-button"
+                              >
+                                <DeleteIcon />
+                              </IconButton>
+                            </div>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+          )}
         </TabPanel>
 
         {/* Role Allowances Tab */}
@@ -407,39 +441,57 @@ const SystemSettings = () => {
         onClose={() => setDepartmentDialog(false)}
         maxWidth="sm"
         fullWidth
+        classes={{ paper: 'settings-section' }}
       >
-        <DialogTitle>{isEditMode ? 'Edit Department' : 'Add Department'}</DialogTitle>
+        <DialogTitle className="section-title">{isEditMode ? 'Edit Department' : 'Add Department'}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <FormControl fullWidth error={!!errors.name} sx={{ mb: 2 }}>
+            <div className="form-group">
+              <label className="form-label">Department Name</label>
               <TextField
-                label="Department Name"
                 name="name"
                 value={currentDepartment.name}
                 onChange={handleDepartmentChange}
                 required
                 error={!!errors.name}
                 helperText={errors.name}
+                fullWidth
+                className="form-input"
+                InputProps={{
+                  classes: { root: 'form-input' }
+                }}
               />
-            </FormControl>
+            </div>
             
-            <TextField
-              label="Description"
-              name="description"
-              value={currentDepartment.description}
-              onChange={handleDepartmentChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <TextField
+                name="description"
+                value={currentDepartment.description}
+                onChange={handleDepartmentChange}
+                fullWidth
+                multiline
+                rows={3}
+                className="form-textarea"
+                InputProps={{
+                  classes: { root: 'form-textarea' }
+                }}
+              />
+            </div>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setDepartmentDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={() => setDepartmentDialog(false)} 
+            className="action-button secondary-button"
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={saveDepartment} 
             variant="contained" 
             color="primary"
+            className="action-button primary-button"
           >
             Save
           </Button>
@@ -452,48 +504,71 @@ const SystemSettings = () => {
         onClose={() => setHeadquartersDialog(false)}
         maxWidth="sm"
         fullWidth
+        classes={{ paper: 'settings-section' }}
       >
-        <DialogTitle>{isEditMode ? 'Edit Headquarters' : 'Add Headquarters'}</DialogTitle>
+        <DialogTitle className="section-title">{isEditMode ? 'Edit Headquarters' : 'Add Headquarters'}</DialogTitle>
         <DialogContent>
           <Box sx={{ mt: 2 }}>
-            <FormControl fullWidth error={!!errors.name} sx={{ mb: 2 }}>
+            <div className="form-group">
+              <label className="form-label">Headquarters Name</label>
               <TextField
-                label="Headquarters Name"
                 name="name"
                 value={currentHeadquarters.name}
                 onChange={handleHeadquartersChange}
                 required
                 error={!!errors.name}
                 helperText={errors.name}
+                fullWidth
+                className="form-input"
+                InputProps={{
+                  classes: { root: 'form-input' }
+                }}
               />
-            </FormControl>
+            </div>
             
-            <TextField
-              label="Location"
-              name="location"
-              value={currentHeadquarters.location}
-              onChange={handleHeadquartersChange}
-              fullWidth
-              sx={{ mb: 2 }}
-            />
+            <div className="form-group">
+              <label className="form-label">Location</label>
+              <TextField
+                name="location"
+                value={currentHeadquarters.location}
+                onChange={handleHeadquartersChange}
+                fullWidth
+                className="form-input"
+                InputProps={{
+                  classes: { root: 'form-input' }
+                }}
+              />
+            </div>
             
-            <TextField
-              label="Address"
-              name="address"
-              value={currentHeadquarters.address}
-              onChange={handleHeadquartersChange}
-              fullWidth
-              multiline
-              rows={3}
-            />
+            <div className="form-group">
+              <label className="form-label">Address</label>
+              <TextField
+                name="address"
+                value={currentHeadquarters.address}
+                onChange={handleHeadquartersChange}
+                fullWidth
+                multiline
+                rows={3}
+                className="form-textarea"
+                InputProps={{
+                  classes: { root: 'form-textarea' }
+                }}
+              />
+            </div>
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setHeadquartersDialog(false)}>Cancel</Button>
+          <Button 
+            onClick={() => setHeadquartersDialog(false)}
+            className="action-button secondary-button"
+          >
+            Cancel
+          </Button>
           <Button 
             onClick={saveHeadquarters} 
             variant="contained" 
             color="primary"
+            className="action-button primary-button"
           >
             Save
           </Button>
@@ -511,11 +586,12 @@ const SystemSettings = () => {
           onClose={() => setSnackbar({ ...snackbar, open: false })} 
           severity={snackbar.severity}
           sx={{ width: '100%' }}
+          className={snackbar.severity === 'error' ? 'error-message' : ''}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
-    </Box>
+    </div>
   );
 };
 

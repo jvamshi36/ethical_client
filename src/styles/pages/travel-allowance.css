@@ -1,0 +1,205 @@
+/* src/styles/pages/travel-allowance.css */
+
+/* Page Animations */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  
+  @keyframes slideInLeft {
+    from {
+      opacity: 0;
+      transform: translateX(-30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+  
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  
+  @keyframes chartFadeIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+  
+  /* src/styles/pages/travel-allowance.css */
+
+/* Page Layout */
+.travel-allowance-container {
+    padding: 24px;
+    width: 100%;
+  }
+  
+  /* Page Header with Title and Button */
+  .page-header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+  }
+  
+  .travel-allowance-title {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: #333;
+    margin: 0;
+    position: relative;
+  }
+  
+  .travel-allowance-title::after {
+    content: '';
+    position: absolute;
+    bottom: -10px;
+    left: 0;
+    width: 40px;
+    height: 4px;
+    background-color: #00bcd4;
+    border-radius: 2px;
+  }
+  
+  /* New Allowance Button */
+  .new-allowance-button {
+    background-color: #00c4e7 !important;
+    color: white !important;
+    border-radius: 4px !important;
+    padding: 10px 20px !important;
+    font-weight: 500 !important;
+    text-transform: uppercase !important;
+    box-shadow: 0 4px 10px rgba(0, 196, 231, 0.2) !important;
+  }
+  
+  .new-allowance-button:hover {
+    background-color: #00b2d1 !important;
+    box-shadow: 0 6px 15px rgba(0, 196, 231, 0.3) !important;
+  }
+  
+  /* Tabs Styling */
+  .tabs-container {
+    margin-bottom: 30px;
+    border-bottom: 1px solid #e0e0e0;
+  }
+  
+  .allowance-tabs {
+    min-height: 48px;
+  }
+  
+  .allowance-tabs .MuiTab-root {
+    text-transform: uppercase;
+    font-weight: 500;
+    color: #666;
+    padding: 12px 24px;
+    min-width: 120px;
+  }
+  
+  .active-tab {
+    color: #00bcd4 !important;
+    font-weight: 600 !important;
+  }
+  
+  /* Content Section */
+  .route-section {
+    background: #fff;
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+  }
+  
+  /* Form Dialog */
+  .form-dialog .MuiPaper-root {
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  
+  .dialog-title {
+    background-color: #00bcd4;
+    color: white;
+    padding: 16px 24px;
+  }
+  
+  .dialog-content {
+    padding: 24px;
+  }
+  
+  /* Loading and Error States */
+  .loading-container,
+  .error-container {
+    padding: 48px;
+    text-align: center;
+    min-height: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  .loading-spinner {
+    color: #00bcd4;
+  }
+  
+  .error-message {
+    color: #e53935;
+  }
+  
+  /* Status Badges */
+  .status-badge {
+    padding: 4px 12px;
+    border-radius: 12px;
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+  }
+  
+  .status-pending {
+    background-color: #fff3e0;
+    color: #ef6c00;
+  }
+  
+  .status-approved {
+    background-color: #e8f5e9;
+    color: #2e7d32;
+  }
+  
+  .status-rejected {
+    background-color: #fbe9e7;
+    color: #d32f2f;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .page-header-container {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+    
+    .new-allowance-button {
+      margin-top: 20px;
+      width: 100%;
+    }
+    
+    .tabs-container {
+      margin-top: 20px;
+    }
+    
+    .allowance-tabs .MuiTab-root {
+      padding: 12px 16px;
+      min-width: 100px;
+    }
+  }

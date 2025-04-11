@@ -12,7 +12,7 @@ import {
 import PageContainer from '../components/layout/PageContainer';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/auth.service';
-import '../styles/components/admin.css';
+import '../styles/pages/profile.css';
 
 const Profile = () => {
   const { currentUser } = useAuth();

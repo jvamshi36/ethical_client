@@ -22,6 +22,12 @@ const Sidebar = ({ open }) => {
   
   const menuItems = [
     {
+      text: 'Admin Dashboard',
+      icon: <Dashboard className="menu-icon" />,
+      path: '/admin/dashboard',
+      roles: ['ADMIN', 'SUPER_ADMIN']
+    },
+    {
       text: 'Dashboard',
       icon: <Dashboard className="menu-icon" />,
       path: '/',

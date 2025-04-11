@@ -1,19 +1,42 @@
 import React from 'react';
-import { Paper, Typography } from '@mui/material';
-import { 
-  LineChart, Line, BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer 
+import {
+  LineChart, Line, BarChart, Bar, PieChart, Pie, 
+  XAxis, YAxis, CartesianGrid, Tooltip, Legend, 
+  ResponsiveContainer, Cell
 } from 'recharts';
-import '../../styles/components/dashboard.css';
 
-const ExpenseChart = ({ 
-  type = 'line', 
-  data = [], 
-  title,
-  height = 300,
-  colors = ['#8884d8', '#82ca9d', '#ffc658', '#ff8042']
-}) => {
+const ExpenseChart = ({ type, data = [], title, height = 300 }) => {
+  // Define colors for different expense types and approval statuses
+  const colors = {
+    line: {
+      da: '#8884d8',  // purple for Daily Allowance
+      ta: '#4caf50',  // green for Travel Allowance
+      total: '#ffc658' // yellow for Total
+    },
+    bar: ['#8884d8', '#4caf50', '#ffc658', '#ff8042'],
+    pie: {
+      Approved: '#8884d8',  // purple
+      Pending: '#4caf50',   // green
+      Rejected: '#ff8042'   // orange
+    }
+  };
   
+  // Handle empty data case
+  if (!data || data.length === 0) {
+    return (
+      <div style={{ 
+        height: `${height}px`, 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center',
+        color: '#999' 
+      }}>
+        No data available for chart
+      </div>
+    );
+  }
+
+  // Render different chart types
   const renderChart = () => {
     switch (type) {
       case 'line':
@@ -21,26 +44,61 @@ const ExpenseChart = ({
           <ResponsiveContainer width="100%" height={height}>
             <LineChart
               data={data}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
-              <XAxis dataKey="name" className="chart-axis" />
-              <YAxis className="chart-axis" />
-              <Tooltip className="chart-tooltip" />
-              <Legend className="chart-legend" />
-              {data[0] && Object.keys(data[0])
-                .filter(key => key !== 'name')
-                .map((key, index) => (
-                  <Line 
-                    key={key}
-                    type="monotone" 
-                    dataKey={key} 
-                    stroke={colors[index % colors.length]}
-                    activeDot={{ r: 8 }}
-                    className="chart-line"
-                  />
-                ))
-              }
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis 
+                dataKey="name" 
+                padding={{ left: 20, right: 20 }}
+                tick={{ fontSize: 12 }}
+              />
+              <YAxis 
+                domain={[0, 'dataMax + 300']}
+                tickCount={7}
+                width={45}
+              />
+              <Tooltip 
+                formatter={(value) => [`${value}`, '']}
+                labelFormatter={(label) => `Month: ${label}`}
+              />
+              <Legend 
+                verticalAlign="top" 
+                height={36}
+                iconType="circle"
+              />
+              {data[0]?.da !== undefined && (
+                <Line 
+                  type="monotone" 
+                  dataKey="da" 
+                  name="Daily Allowance" 
+                  stroke={colors.line.da} 
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              )}
+              {data[0]?.ta !== undefined && (
+                <Line 
+                  type="monotone" 
+                  dataKey="ta" 
+                  name="Travel Allowance" 
+                  stroke={colors.line.ta}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }} 
+                />
+              )}
+              {data[0]?.total !== undefined && (
+                <Line 
+                  type="monotone" 
+                  dataKey="total" 
+                  name="Total" 
+                  stroke={colors.line.total}
+                  strokeWidth={2}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              )}
             </LineChart>
           </ResponsiveContainer>
         );
@@ -50,24 +108,14 @@ const ExpenseChart = ({
           <ResponsiveContainer width="100%" height={height}>
             <BarChart
               data={data}
-              margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              margin={{ top: 20, right: 30, left: 20, bottom: 20 }}
             >
-              <CartesianGrid strokeDasharray="3 3" className="chart-grid" />
-              <XAxis dataKey="name" className="chart-axis" />
-              <YAxis className="chart-axis" />
-              <Tooltip className="chart-tooltip" />
-              <Legend className="chart-legend" />
-              {data[0] && Object.keys(data[0])
-                .filter(key => key !== 'name')
-                .map((key, index) => (
-                  <Bar 
-                    key={key}
-                    dataKey={key} 
-                    fill={colors[index % colors.length]}
-                    className="chart-bar"
-                  />
-                ))
-              }
+              <CartesianGrid strokeDasharray="3 3" />
+              <XAxis dataKey="name" />
+              <YAxis />
+              <Tooltip />
+              <Legend />
+              <Bar dataKey="value" name="Value" fill="#8884d8" />
             </BarChart>
           </ResponsiveContainer>
         );
@@ -81,45 +129,30 @@ const ExpenseChart = ({
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                outerRadius={100}
+                label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"
-                nameKey="name"
-                label={({ name, percent }) => 
-                  `${name}: ${(percent * 100).toFixed(0)}%`
-                }
-                className="chart-pie"
               >
                 {data.map((entry, index) => (
                   <Cell 
                     key={`cell-${index}`} 
-                    fill={colors[index % colors.length]} 
-                    className="chart-pie-cell"
+                    fill={colors.pie[entry.name] || colors.bar[index % colors.bar.length]} 
                   />
                 ))}
               </Pie>
-              <Tooltip className="chart-tooltip" />
-              <Legend className="chart-legend" />
+              <Tooltip />
+              <Legend />
             </PieChart>
           </ResponsiveContainer>
         );
         
       default:
-        return null;
+        return <div>Invalid chart type</div>;
     }
   };
-  
-  return (
-    <Paper className="chart-container">
-      {title && (
-        <Typography variant="h6" className="chart-title">
-          {title}
-        </Typography>
-      )}
-      
-      {renderChart()}
-    </Paper>
-  );
+
+  return renderChart();
 };
 
 export default ExpenseChart;

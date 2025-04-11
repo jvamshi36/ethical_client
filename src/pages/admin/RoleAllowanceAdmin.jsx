@@ -12,11 +12,13 @@ import {
   IconButton,
   Alert,
   CircularProgress,
-  Box
+  Box,
+  Button
 } from '@mui/material';
 import { Edit, Save, Cancel } from '@mui/icons-material';
 import PageContainer from '../../components/layout/PageContainer';
 import { api } from '../../services/auth.service';
+import '../../styles/pages/role-allowance.css';
 
 const RoleAllowanceAdmin = () => {
   const [allowances, setAllowances] = useState([]);
@@ -73,23 +75,85 @@ const RoleAllowanceAdmin = () => {
   
   if (loading) {
     return (
-      <Box display="flex" justifyContent="center" padding={4}>
-        <CircularProgress />
-      </Box>
+      <div className="loading-container">
+        <CircularProgress className="loading-spinner" />
+        <div>Loading role allowances...</div>
+      </div>
     );
   }
   
   return (
-    <PageContainer title="Role Allowance Management">
+    <div className="role-allowance-container">
+      <div className="role-allowance-header">
+        <h1 className="role-allowance-title">Role Allowance Management</h1>
+      </div>
+      
       {error && (
-        <Alert severity="error" sx={{ mb: 3 }}>
-          {error}
+        <Alert severity="error" sx={{ mb: 3 }} className="error-container">
+          <div className="error-message">{error}</div>
         </Alert>
       )}
       
-      <Paper>
+      {/* Role Cards Grid */}
+      <div className="role-cards-grid">
+        {allowances.slice(0, 3).map((allowance) => (
+          <div className="role-card" key={`card-${allowance.role}`}>
+            <div className="role-card-header">
+              <div className="role-name">{allowance.role}</div>
+              {editingRole === allowance.role ? (
+                <Button 
+                  variant="contained" 
+                  size="small" 
+                  onClick={() => handleSave(allowance.role)}
+                  className="action-button primary-button"
+                >
+                  Save
+                </Button>
+              ) : (
+                <Button 
+                  variant="outlined" 
+                  size="small" 
+                  onClick={() => handleEdit(allowance)}
+                  className="action-button secondary-button"
+                >
+                  Edit
+                </Button>
+              )}
+            </div>
+            
+            <div className="role-details">
+              <div className="role-detail-item">
+                <span className="detail-label">Daily Allowance</span>
+                {editingRole === allowance.role ? (
+                  <TextField
+                    type="number"
+                    value={editAmount}
+                    onChange={(e) => setEditAmount(e.target.value)}
+                    size="small"
+                    error={isNaN(parseFloat(editAmount)) || parseFloat(editAmount) <= 0}
+                    helperText={isNaN(parseFloat(editAmount)) || parseFloat(editAmount) <= 0 ? 'Enter valid amount' : ''}
+                    className="form-input"
+                    InputProps={{
+                      classes: { root: 'form-input' }
+                    }}
+                  />
+                ) : (
+                  <span className="detail-value">${parseFloat(allowance.daily_amount || 0).toFixed(2)}</span>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      {/* Role Table */}
+      <Paper className="allowance-settings">
+        <Typography variant="h6" gutterBottom>
+          All Role Allowances
+        </Typography>
+        
         <TableContainer>
-          <Table>
+          <Table className="role-table">
             <TableHead>
               <TableRow>
                 <TableCell>Role</TableCell>
@@ -100,7 +164,7 @@ const RoleAllowanceAdmin = () => {
             <TableBody>
               {allowances.map((allowance) => (
                 <TableRow key={allowance.role}>
-                  <TableCell>{allowance.role}</TableCell>
+                  <TableCell className="role-name">{allowance.role}</TableCell>
                   <TableCell align="right">
                     {editingRole === allowance.role ? (
                       <TextField
@@ -110,9 +174,10 @@ const RoleAllowanceAdmin = () => {
                         size="small"
                         error={isNaN(parseFloat(editAmount)) || parseFloat(editAmount) <= 0}
                         helperText={isNaN(parseFloat(editAmount)) || parseFloat(editAmount) <= 0 ? 'Enter valid amount' : ''}
+                        className="form-input"
                       />
                     ) : (
-                      `$${parseFloat(allowance.daily_amount || 0).toFixed(2)}`
+                      <span className="detail-value">${parseFloat(allowance.daily_amount || 0).toFixed(2)}</span>
                     )}
                   </TableCell>
                   <TableCell align="center">
@@ -122,6 +187,7 @@ const RoleAllowanceAdmin = () => {
                           color="primary"
                           onClick={() => handleSave(allowance.role)}
                           size="small"
+                          className="action-button primary-button"
                         >
                           <Save />
                         </IconButton>
@@ -129,6 +195,7 @@ const RoleAllowanceAdmin = () => {
                           color="error"
                           onClick={handleCancel}
                           size="small"
+                          className="action-button secondary-button"
                         >
                           <Cancel />
                         </IconButton>
@@ -138,6 +205,7 @@ const RoleAllowanceAdmin = () => {
                         color="primary"
                         onClick={() => handleEdit(allowance)}
                         size="small"
+                        className="action-button secondary-button"
                       >
                         <Edit />
                       </IconButton>
@@ -149,7 +217,7 @@ const RoleAllowanceAdmin = () => {
           </Table>
         </TableContainer>
       </Paper>
-    </PageContainer>
+    </div>
   );
 };
 

@@ -1,0 +1,336 @@
+/* src/styles/pages/dashboard.css */
+/* Additional dashboard CSS to ensure proper chart display */
+
+.chart-section {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .chart-header {
+    flex-shrink: 0;
+  }
+  
+  .chart-content {
+    flex-grow: 1;
+    width: 100%;
+    min-height: 320px;
+    position: relative;
+  }
+  
+  /* Ensure monthly expenses chart has proper horizontal look */
+  .monthly-expenses-chart {
+    height: 350px;
+    width: 100%;
+  }
+  
+  /* Chart tooltips */
+  .recharts-tooltip-wrapper {
+    background: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 10px;
+    border: 1px solid #eee;
+  }
+  
+  .recharts-default-tooltip {
+    background-color: white !important;
+    border-color: #eee !important;
+    padding: 8px 12px !important;
+    border-radius: 4px !important;
+  }
+  
+  /* Line Chart Legend Styles */
+  .recharts-legend-item {
+    margin-right: 16px !important;
+  }
+  
+  .recharts-legend-item-text {
+    font-size: 13px !important;
+    color: #555 !important;
+  }
+  
+  /* Chart axis labels */
+  .recharts-cartesian-axis-tick-value {
+    font-size: 12px;
+    fill: #666;
+  }
+  
+  /* Improve grid line appearance */
+  .recharts-cartesian-grid-horizontal line,
+  .recharts-cartesian-grid-vertical line {
+    stroke: #e0e0e0;
+    stroke-dasharray: 3 3;
+  }
+  
+  /* Remove vertical chart congestion */
+  .recharts-wrapper {
+    margin: 0 auto;
+    width: 100% !important;
+  }
+  
+  @media (max-width: 768px) {
+    .chart-section {
+      height: auto;
+      min-height: 400px;
+    }
+  }
+/* Page Animations */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes chartFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Page Layout */
+.dashboard-container {
+  animation: fadeIn 0.5s ease-out;
+  padding: 24px;
+}
+
+.dashboard-header {
+  margin-bottom: 32px;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.dashboard-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  position: relative;
+  display: inline-block;
+}
+
+.dashboard-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 50px;
+  height: 4px;
+  background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+  border-radius: 2px;
+}
+
+/* Summary Cards */
+.summary-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.summary-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  transition: all 0.3s ease;
+  animation: slideInUp 0.5s ease-out;
+}
+
+.summary-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.summary-card .card-title {
+  font-size: 0.9rem;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.summary-card .card-value {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  background: linear-gradient(90deg, #00bcd4 0%, #2196f3 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.summary-card .card-subtitle {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+/* Chart Sections */
+.chart-section {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  animation: chartFadeIn 0.6s ease-out;
+}
+
+.chart-section:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.chart-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.chart-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Activity Feed */
+.activity-feed {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.activity-list {
+  margin-top: 16px;
+}
+
+.activity-item {
+  display: flex;
+  gap: 16px;
+  padding: 16px 0;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.activity-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #f5f7fa;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #2196f3;
+}
+
+.activity-content {
+  flex: 1;
+}
+
+.activity-title {
+  font-weight: 500;
+  color: #333;
+  margin-bottom: 4px;
+}
+
+.activity-time {
+  font-size: 0.85rem;
+  color: #666;
+}
+
+/* Quick Actions */
+.quick-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.action-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+}
+
+.action-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.action-icon {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: #2196f3;
+}
+
+.action-title {
+  font-weight: 500;
+  color: #333;
+}
+
+/* Status Indicators */
+.status-badge {
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+.status-success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+}
+
+.status-warning {
+  background-color: #fff3e0;
+  color: #ef6c00;
+}
+
+.status-danger {
+  background-color: #fbe9e7;
+  color: #d32f2f;
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  padding: 48px;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.loading-spinner {
+  margin-bottom: 16px;
+}
+
+.error-message {
+  color: #e53935;
+  margin-bottom: 16px;
+}

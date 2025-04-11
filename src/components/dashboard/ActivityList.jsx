@@ -1,100 +1,94 @@
 import React from 'react';
-import { 
-  List, ListItem, ListItemText, ListItemAvatar, 
-  Avatar, Typography, Divider, Chip 
-} from '@mui/material';
-import { 
-  AttachMoney, CardTravel, PersonAdd, 
-  CheckCircle, Cancel, Pending 
-} from '@mui/icons-material';
-import { format } from 'date-fns';
-import '../../styles/components/dashboard.css';
+import { Assignment } from '@mui/icons-material';
+import { Box, Typography } from '@mui/material';
 
 const ActivityList = ({ activities = [] }) => {
-  const getIcon = (type) => {
-    switch (type) {
-      case 'DA':
-        return <AttachMoney />;
-      case 'TA':
-        return <CardTravel />;
-      case 'USER':
-        return <PersonAdd />;
-      default:
-        return <AttachMoney />;
-    }
-  };
-  
-  const getStatusIcon = (status) => {
-    switch (status) {
-      case 'APPROVED':
-        return <CheckCircle fontSize="small" />;
-      case 'REJECTED':
-        return <Cancel fontSize="small" />;
-      default:
-        return <Pending fontSize="small" />;
-    }
-  };
-  
-  const getStatusColor = (status) => {
-    switch (status) {
-      case 'APPROVED':
-        return 'success';
-      case 'REJECTED':
-        return 'error';
-      default:
-        return 'warning';
-    }
-  };
-  
-  return (
-    <List className="activity-list">
-      {activities.length === 0 ? (
-        <Typography variant="body2" className="empty-list">
-          No recent activities
+  if (!activities.length) {
+    return (
+      <Box textAlign="center" py={2}>
+        <Typography variant="body2" color="textSecondary">
+          No recent activities to display
         </Typography>
-      ) : (
-        activities.map((activity, index) => (
-          <React.Fragment key={activity.id || index}>
-            <ListItem alignItems="flex-start" className="activity-item">
-              <ListItemAvatar className="activity-avatar">
-                <Avatar className={`avatar-${activity.type.toLowerCase()}`}>
-                  {getIcon(activity.type)}
-                </Avatar>
-              </ListItemAvatar>
-              <ListItemText
-                primary={
-                  <Typography variant="subtitle1" className="activity-title">
-                    {activity.title}
-                  </Typography>
-                }
-                secondary={
-                  <React.Fragment>
-                    <Typography
-                      component="span"
-                      variant="body2"
-                      className="activity-description"
-                    >
-                      {activity.description}
-                    </Typography>
-                    <Typography variant="caption" className="activity-date">
-                      {format(new Date(activity.date), 'MMM dd, yyyy HH:mm')}
-                    </Typography>
-                  </React.Fragment>
-                }
-              />
-              <Chip
-                icon={getStatusIcon(activity.status)}
-                label={activity.status}
-                color={getStatusColor(activity.status)}
-                size="small"
-                className="activity-status"
-              />
-            </ListItem>
-            {index < activities.length - 1 && <Divider component="li" />}
-          </React.Fragment>
-        ))
-      )}
-    </List>
+      </Box>
+    );
+  }
+
+  // Get status class based on status
+  const getStatusClass = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return 'status-success';
+      case 'pending':
+        return 'status-warning';
+      case 'rejected':
+        return 'status-danger';
+      default:
+        return '';
+    }
+  };
+
+  // Get status background color
+  const getStatusStyle = (status) => {
+    switch (status?.toLowerCase()) {
+      case 'approved':
+        return { backgroundColor: '#e8f5e9', color: '#2e7d32' };
+      case 'pending':
+        return { backgroundColor: '#fff3e0', color: '#ef6c00' };
+      case 'rejected':
+        return { backgroundColor: '#fbe9e7', color: '#d32f2f' };
+      default:
+        return { backgroundColor: '#e8f5e9', color: '#2e7d32' };
+    }
+  };
+
+  // Get highlight color style for the vertical bar
+  const getHighlightColor = (type) => {
+    return type?.toLowerCase() === 'travel' ? '#00bcd4' : '#2196f3';
+  };
+
+  return (
+    <div className="activity-list">
+      {activities.map((activity, index) => (
+        <div 
+          className="activity-item" 
+          key={index}
+          style={{ 
+            position: 'relative', 
+            padding: '16px 16px 16px 32px',
+            borderLeft: `4px solid ${getHighlightColor(activity.type)}`,
+            marginBottom: '10px',
+            backgroundColor: '#f9f9f9',
+            borderRadius: '0 4px 4px 0'
+          }}
+        >
+          <Box position="absolute" left="10px" top="50%" sx={{ transform: 'translateY(-50%)' }}>
+            <Assignment style={{ color: getHighlightColor(activity.type) }} />
+          </Box>
+          
+          <div className="activity-content">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="activity-title" style={{ fontWeight: 500 }}>
+                {activity.title || (activity.type === 'travel' ? 'Travel Allowance' : 'Daily Allowance')}
+              </div>
+              {activity.status && (
+                <span 
+                  style={{ 
+                    ...getStatusStyle(activity.status),
+                    padding: '4px 12px',
+                    borderRadius: '16px',
+                    fontSize: '0.75rem',
+                    fontWeight: 500,
+                    textTransform: 'uppercase'
+                  }}
+                >
+                  {activity.status}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 };
 

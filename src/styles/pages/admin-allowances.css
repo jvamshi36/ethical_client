@@ -1,0 +1,221 @@
+/* src/styles/pages/admin-allowances.css */
+
+/* Admin Allowances Page Animations */
+@keyframes slideInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeInScale {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Admin Allowances Page Layout */
+.allowances-container {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.allowances-header {
+  margin-bottom: 32px;
+  animation: slideInLeft 0.5s ease-out;
+}
+
+.allowances-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  margin-bottom: 8px;
+  color: #333;
+  position: relative;
+  display: inline-block;
+}
+
+.allowances-title::after {
+  content: '';
+  position: absolute;
+  bottom: -8px;
+  left: 0;
+  width: 50px;
+  height: 4px;
+  background: linear-gradient(90deg, #2196f3 0%, #00bcd4 100%);
+  border-radius: 2px;
+}
+
+/* Filter Section */
+.filter-section {
+  background-color: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  animation: slideInUp 0.5s ease-out;
+  transition: all 0.3s ease;
+}
+
+.filter-section:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.filter-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.filter-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #333;
+}
+
+.filter-toggle-btn {
+  transition: transform 0.3s ease;
+}
+
+.filter-toggle-btn.expanded {
+  transform: rotate(180deg);
+}
+
+.filter-content {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  animation: fadeInScale 0.4s ease-out;
+}
+
+.filter-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* Table Section */
+.table-section {
+  background-color: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  animation: slideInUp 0.5s ease-out;
+  transition: all 0.3s ease;
+}
+
+.table-section:hover {
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+}
+
+.table-header {
+  background-color: #f5f7fa;
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.table-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #333;
+}
+
+/* Table Styling */
+.allowances-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.allowances-table th {
+  background-color: #f5f7fa;
+  color: #333;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.allowances-table td {
+  padding: 16px;
+  border-bottom: 1px solid #e0e0e0;
+  color: #666;
+}
+
+.allowances-table tbody tr {
+  transition: background-color 0.3s ease;
+}
+
+.allowances-table tbody tr:hover {
+  background-color: #f8f9fa;
+}
+
+/* Status Badge */
+.status-badge {
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.status-badge.pending {
+  background-color: #fff3e0;
+  color: #f57c00;
+}
+
+.status-badge.approved {
+  background-color: #e8f5e9;
+  color: #43a047;
+}
+
+.status-badge.rejected {
+  background-color: #ffebee;
+  color: #e53935;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.action-btn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+}
+
+/* Loading and Error States */
+.loading-container,
+.error-container {
+  padding: 48px;
+  text-align: center;
+  animation: fadeIn 0.4s ease-out;
+}
+
+.loading-spinner {
+  margin-bottom: 16px;
+}
+
+.error-message {
+  color: #e53935;
+  margin-bottom: 16px;
+}

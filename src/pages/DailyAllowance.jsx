@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { 
   Typography, Button, Grid, Box, Paper, Alert, CircularProgress, Tabs, Tab
 } from '@mui/material';
@@ -20,22 +20,49 @@ const DailyAllowance = () => {
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [tabValue, setTabValue] = useState(0);
   
-  useEffect(() => {
-    fetchAllowances();
-    if (isManager()) {
-      fetchTeamAllowances();
-    }
+  // Use debounce to prevent multiple rapid API calls
+  const debounceFetch = useCallback(() => {
+    let timeoutId = null;
+    return () => {
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      timeoutId = setTimeout(() => {
+        fetchAllowances();
+        if (isManager()) {
+          fetchTeamAllowances();
+        }
+      }, 300); // 300ms debounce time
+    };
   }, [isManager]);
+
+  useEffect(() => {
+    const fetchData = debounceFetch();
+    fetchData();
+    // Cleanup function to clear any pending timeouts
+    return () => {
+      const fetchData = debounceFetch();
+      fetchData.timeoutId && clearTimeout(fetchData.timeoutId);
+    };
+  }, [debounceFetch]);
   
   const fetchAllowances = async () => {
-    setLoading(true);
+    // Don't set loading to true if we already have data to prevent UI flicker
+    if (!allowances.length) {
+      setLoading(true);
+    }
     setError('');
     
     try {
       const response = await DailyAllowanceService.getUserAllowances();
       setAllowances(response);
     } catch (err) {
-      setError('Failed to load allowances. Please try again later.');
+      // Check if the error is a rate limit error (429)
+      if (err.response && err.response.status === 429) {
+        setError('Too many requests. Please wait a moment before trying again.');
+      } else {
+        setError('Failed to load allowances. Please try again later.');
+      }
       console.error('Error fetching allowances:', err);
     } finally {
       setLoading(false);
@@ -47,6 +74,7 @@ const DailyAllowance = () => {
       const response = await DailyAllowanceService.getTeamAllowances();
       setTeamAllowances(response);
     } catch (err) {
+      // Only log the error, don't show UI error for team allowances to avoid confusion
       console.error('Error fetching team allowances:', err);
     }
   };
