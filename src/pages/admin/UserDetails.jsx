@@ -190,9 +190,9 @@ const UserDetails = ({ user, onBack, onUserUpdate }) => {
                 size="small"
               />
               <span 
-                className={`user-status ${userDetail.isActive ? 'status-active' : 'status-inactive'}`}
+                className={`user-status ${userDetail.isActive === true || userDetail.isActive === 'true' || userDetail.isActive === 't' ? 'status-active' : 'status-inactive'}`}
               >
-                {userDetail.isActive ? 'Active' : 'Inactive'}
+                {userDetail.isActive === true || userDetail.isActive === 'true' || userDetail.isActive === 't' ? 'Active' : 'Inactive'}
               </span>
             </div>
           </div>

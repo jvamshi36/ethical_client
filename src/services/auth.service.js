@@ -42,10 +42,11 @@ const TokenService = {
 
 // Create axios instance with auth header
 const instance = axios.create({
-  baseURL: 'http://localhost:5000/api',
+  baseURL: API_URL,
   headers: {
     'Content-Type': 'application/json'
-  }
+  },
+  timeout: 10000 // Add a timeout to prevent hanging requests
 });
 
 // Add request interceptor to include auth token
@@ -62,43 +63,106 @@ instance.interceptors.request.use(
   }
 );
 
+// Flag to prevent multiple refresh attempts at once
+let isRefreshing = false;
+// Queue of requests to retry after token refresh
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  
+  failedQueue = [];
+};
+
 // Add response interceptor to handle token refresh
 instance.interceptors.response.use(
   (response) => {
     return response;
   },
   async (error) => {
-    const originalConfig = error.config;
+    const originalRequest = error.config;
     
     if (error.response) {
-      // Access token expired
-      if (error.response.status === 401 && !originalConfig._retry) {
-        originalConfig._retry = true;
+      // If token refresh request fails, clean up and reject
+      if (originalRequest.url === `${API_URL}/auth/refresh-token` && 
+          error.response.status === 401) {
+        AuthService.logout();
+        return Promise.reject(error);
+      }
+      
+      // Access token expired (401) and not already retrying this request
+      if (error.response.status === 401 && !originalRequest._retry) {
+        if (isRefreshing) {
+          // If already refreshing, add this request to queue
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          })
+            .then(token => {
+              originalRequest.headers['Authorization'] = `Bearer ${token}`;
+              return instance(originalRequest);
+            })
+            .catch(err => {
+              return Promise.reject(err);
+            });
+        }
+        
+        originalRequest._retry = true;
+        isRefreshing = true;
         
         try {
           // Try to refresh the token
           const refreshToken = TokenService.getLocalRefreshToken();
+          
+          if (!refreshToken) {
+            throw new Error('No refresh token available');
+          }
+          
           const response = await axios.post(`${API_URL}/auth/refresh-token`, {
             refreshToken
           });
           
           const { accessToken } = response.data;
+          
+          // Store the new access token
           TokenService.setLocalAccessToken(accessToken);
           
-          // Retry the original request
-          return instance(originalConfig);
-        } catch (_error) {
+          // Update authorization header for all future requests
+          instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          
+          // Process queued requests with new token
+          processQueue(null, accessToken);
+          
+          // Retry the original request with new token
+          originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
+          return instance(originalRequest);
+        } catch (refreshError) {
+          // Process queued requests with error
+          processQueue(refreshError);
+          
           // If refresh token fails, log out the user
           AuthService.logout();
-          return Promise.reject(_error);
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
         }
       }
       
       // Handle rate limiting (429 Too Many Requests)
       if (error.response.status === 429) {
         console.warn('Rate limit exceeded. Too many requests.');
-        // Add a more descriptive error message
         error.message = 'Too many requests. Please wait a moment before trying again.';
+      }
+      
+      // Handle server errors
+      if (error.response.status >= 500) {
+        console.error('Server error:', error.response.status, error.response.data);
+        error.message = 'Server error. Please try again later.';
       }
     }
     
@@ -117,9 +181,13 @@ const AuthService = {
       
       const { accessToken, refreshToken, user } = response.data;
       
+      // Store tokens and user info
       TokenService.setLocalAccessToken(accessToken);
       TokenService.setLocalRefreshToken(refreshToken);
       TokenService.setUser(user);
+      
+      // Set the auth header for future requests
+      instance.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
       
       return user;
     } catch (error) {
@@ -129,12 +197,26 @@ const AuthService = {
   
   logout: async () => {
     try {
-      await instance.post(`${API_URL}/auth/logout`);
-    } catch (error) {
-      console.error('Logout error:', error);
+      // Try to notify the server
+      const accessToken = TokenService.getLocalAccessToken();
+      if (accessToken) {
+        try {
+          await instance.post(`${API_URL}/auth/logout`);
+        } catch (logoutError) {
+          console.warn('Server logout failed, continuing with client logout:', logoutError);
+        }
+      }
     } finally {
+      // Clear auth header
+      delete instance.defaults.headers.common['Authorization'];
+      
+      // Always clean up local storage regardless of server response
       TokenService.removeTokens();
       TokenService.removeUser();
+      
+      // Reset any refresh state
+      isRefreshing = false;
+      failedQueue = [];
     }
   },
   
@@ -154,11 +236,15 @@ const AuthService = {
       
       // Check if token is expired
       if (decoded.exp < currentTime) {
-        return false;
+        // Token is expired, but we might be able to refresh
+        // Return true for now to prevent immediate logout flicker
+        // The interceptor will handle the refresh when needed
+        return TokenService.getLocalRefreshToken() !== null;
       }
       
       return true;
     } catch (error) {
+      console.error('Token validation error:', error);
       return false;
     }
   },

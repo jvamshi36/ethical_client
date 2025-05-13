@@ -18,6 +18,7 @@ const TravelAllowanceForm = ({ onSubmit, onClose, initialData = null, editMode =
     toCity: '',
     distance: '',
     travelMode: 'CAR',
+    stationType: 'OUTSTATION',
     amount: '',
     remarks: ''
   });
@@ -26,6 +27,12 @@ const TravelAllowanceForm = ({ onSubmit, onClose, initialData = null, editMode =
   const [loading, setLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState('');
   
+  // Station types list
+  const stationTypes = [
+    { value: 'OUTSTATION', label: 'Outstation' },
+    { value: 'EX_STATION', label: 'Ex-Station' }
+  ];
+
   // Travel modes list
   const travelModes = [
     { value: 'CAR', label: 'Car' },
@@ -76,13 +83,16 @@ const TravelAllowanceForm = ({ onSubmit, onClose, initialData = null, editMode =
     );
     
     if (route) {
-      // Update form with route details
+      // Update form with route details and adjust amount based on station type
+      const baseAmount = route.amount;
+      const adjustedAmount = formData.stationType === 'EX_STATION' ? baseAmount * 1.5 : baseAmount;
+      
       setFormData({
         ...formData,
         fromCity,
         toCity,
         distance: route.distance,
-        amount: route.amount
+        amount: adjustedAmount
       });
       
       // Clear validation errors
@@ -244,6 +254,36 @@ const TravelAllowanceForm = ({ onSubmit, onClose, initialData = null, editMode =
           />
         </Grid>
         
+        <Grid item xs={12} md={6}>
+          <FormControl fullWidth required error={!!errors.stationType} className="form-input">
+            <InputLabel>Station Type</InputLabel>
+            <Select
+              name="stationType"
+              value={formData.stationType}
+              onChange={(e) => {
+                handleChange(e);
+                // Recalculate amount when station type changes
+                if (formData.amount) {
+                  const baseAmount = e.target.value === 'EX_STATION' ? formData.amount / 1.5 : formData.amount * 1.5;
+                  setFormData(prev => ({
+                    ...prev,
+                    stationType: e.target.value,
+                    amount: e.target.value === 'EX_STATION' ? baseAmount * 1.5 : baseAmount / 1.5
+                  }));
+                }
+              }}
+              label="Station Type"
+            >
+              {stationTypes.map(type => (
+                <MenuItem key={type.value} value={type.value}>
+                  {type.label}
+                </MenuItem>
+              ))}
+            </Select>
+            {errors.stationType && <FormHelperText>{errors.stationType}</FormHelperText>}
+          </FormControl>
+        </Grid>
+
         <Grid item xs={12} md={6}>
           <FormControl fullWidth required error={!!errors.travelMode} className="form-input">
             <InputLabel>Travel Mode</InputLabel>

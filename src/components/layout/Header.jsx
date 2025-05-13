@@ -2,27 +2,28 @@ import React, { useState } from 'react';
 import { 
   AppBar, Toolbar, Typography, IconButton, 
   Avatar, Menu, MenuItem, Badge, Box,
-  Tooltip, useMediaQuery, useTheme
+  Tooltip, useMediaQuery, useTheme, 
+  CircularProgress, Divider
 } from '@mui/material';
 import { 
   Menu as MenuIcon, 
   Notifications, 
   AccountCircle,
-  LightMode,
-  DarkMode,
   Logout,
   Person,
-  Dashboard
+  Dashboard,
+  Settings
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import '../../styles/components/layout.css';
 
 const Header = ({ toggleSidebar, sidebarOpen }) => {
-  const { currentUser, logout } = useAuth();
+  const { currentUser, logout, isAdmin } = useAuth();
   const navigate = useNavigate();
   const [anchorEl, setAnchorEl] = useState(null);
   const [notificationAnchor, setNotificationAnchor] = useState(null);
+  const [loggingOut, setLoggingOut] = useState(false);
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   
@@ -52,10 +53,16 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
   
   const handleLogout = async () => {
     try {
+      setLoggingOut(true);
+      handleMenuClose(); // Close the menu immediately
       await logout();
-      navigate('/login');
+      // Navigation is handled inside the logout function in AuthContext
     } catch (error) {
       console.error('Logout error:', error);
+      // If logout fails, ensure user sees something happened
+      alert('An error occurred during logout. Please try again.');
+    } finally {
+      setLoggingOut(false);
     }
   };
   
@@ -63,7 +70,7 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
     navigate(path);
     handleMenuClose();
   };
-
+  
   return (
     <AppBar position="fixed" className="app-header">
       <Toolbar>
@@ -90,20 +97,26 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
             </IconButton>
           </Tooltip>
           
-          <Tooltip title={currentUser?.fullName || 'User Profile'}>
-            <IconButton
-              edge="end"
-              aria-label="account of current user"
-              aria-haspopup="true"
-              onClick={handleProfileMenuOpen}
-              color="inherit"
-              className="avatar-button"
-            >
-              <Avatar className="user-avatar">
-                {currentUser?.fullName?.charAt(0) || 'U'}
-              </Avatar>
-            </IconButton>
-          </Tooltip>
+          {loggingOut ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', ml: 2 }}>
+              <CircularProgress size={24} color="inherit" />
+            </Box>
+          ) : (
+            <Tooltip title={currentUser?.fullName || 'User Profile'}>
+              <IconButton
+                edge="end"
+                aria-label="account of current user"
+                aria-haspopup="true"
+                onClick={handleProfileMenuOpen}
+                color="inherit"
+                className="avatar-button"
+              >
+                <Avatar className="user-avatar">
+                  {currentUser?.fullName?.charAt(0) || 'U'}
+                </Avatar>
+              </IconButton>
+            </Tooltip>
+          )}
         </Box>
         
         {/* Profile menu */}
@@ -136,7 +149,9 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
             </Box>
           </Box>
           
-          <MenuItem onClick={() => navigateTo('/dashboard')} className="menu-item">
+          <Divider sx={{ my: 1 }} />
+          
+          <MenuItem onClick={() => navigateTo('/')} className="menu-item">
             <Dashboard fontSize="small" className="menu-icon" />
             Dashboard
           </MenuItem>
@@ -146,9 +161,18 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
             Profile
           </MenuItem>
           
-          <MenuItem onClick={handleLogout} className="menu-item">
+          {isAdmin() && (
+            <MenuItem onClick={() => navigateTo('/admin/dashboard')} className="menu-item">
+              <Settings fontSize="small" className="menu-icon" />
+              Admin Panel
+            </MenuItem>
+          )}
+          
+          <Divider sx={{ my: 1 }} />
+          
+          <MenuItem onClick={handleLogout} className="menu-item" disabled={loggingOut}>
             <Logout fontSize="small" className="menu-icon logout-icon" />
-            Logout
+            {loggingOut ? 'Logging out...' : 'Logout'}
           </MenuItem>
         </Menu>
         
@@ -174,31 +198,49 @@ const Header = ({ toggleSidebar, sidebarOpen }) => {
             <Typography variant="subtitle1">Notifications</Typography>
           </Box>
           
-          {notifications.map((notification) => (
-            <MenuItem key={notification.id} className="notification-item">
-              <Box>
-                <Typography variant="body2">{notification.message}</Typography>
-                <Typography variant="caption" color="textSecondary">
-                  {notification.time}
+          <Divider sx={{ mb: 1 }} />
+          
+          {notifications.length === 0 ? (
+            <Box sx={{ p: 2, textAlign: 'center' }}>
+              <Typography variant="body2" color="textSecondary">
+                No new notifications
+              </Typography>
+            </Box>
+          ) : (
+            notifications.map((notification) => (
+              <MenuItem key={notification.id} className="notification-item" onClick={handleNotificationClose}>
+                <Box>
+                  <Typography variant="body2">{notification.message}</Typography>
+                  <Typography variant="caption" color="textSecondary">
+                    {notification.time}
+                  </Typography>
+                </Box>
+              </MenuItem>
+            ))
+          )}
+          
+          {notifications.length > 0 && (
+            <>
+              <Divider sx={{ mt: 1 }} />
+              <Box className="menu-footer">
+                <Typography 
+                  variant="body2" 
+                  color="primary" 
+                  align="center" 
+                  className="view-all"
+                  onClick={handleNotificationClose}
+                  sx={{ cursor: 'pointer', py: 1 }}
+                >
+                  View All Notifications
                 </Typography>
               </Box>
-            </MenuItem>
-          ))}
-          
-          <Box className="menu-footer">
-            <Typography 
-              variant="body2" 
-              color="primary" 
-              align="center" 
-              className="view-all"
-            >
-              View All Notifications
-            </Typography>
-          </Box>
+            </>
+          )}
         </Menu>
       </Toolbar>
     </AppBar>
   );
+
 };
 
 export default Header;
